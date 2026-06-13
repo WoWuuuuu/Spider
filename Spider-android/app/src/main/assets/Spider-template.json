@@ -1,0 +1,121 @@
+{
+  "log": {
+    "level": "info",
+    "timestamp": true
+  },
+  "dns": {
+    "servers": [
+      {
+        "tag": "google",
+        "type": "https",
+        "address": "8.8.8.8",
+        "port": 443,
+        "path": "/dns-query"
+      },
+      {
+        "tag": "cloudflare",
+        "type": "https",
+        "address": "1.1.1.1",
+        "port": 443,
+        "path": "/dns-query"
+      },
+      {
+        "tag": "local",
+        "type": "udp", "address": "223.5.5.5" },
+      { "tag": "cn", "type": "udp", "address": "119.29.29.29" },
+      { "tag": "block", "type": "block" }
+    ],
+    "rules": [
+      { "geosite": "cn", "server": "cn" },
+      { "geoip": "cn", "server": "local" },
+      { "geosite": "category-ads", "server": "block" },
+      { "geosite": "category-malicious", "server": "block" },
+      { "geosite": "category-ai", "server": "google" },
+      { "type": "default", "server": "google" }
+    ],
+    "final": "cloudflare",
+    "strategy": "prefer_ipv4",
+    "disable_cache": false,
+    "independent_cache": true,
+    "fake_ip": {
+      "enabled": true,
+      "inet4_range": "198.18.0.0/15",
+      "inet6_range": "fc00::/18"
+    }
+  },
+  "inbounds": [
+    {
+      "type": "tun",
+      "tag": "tun-in",
+      "address": ["172.19.0.1/30", "fdfe:dcba:9876::1/126"],
+      "auto_route": true,
+      "strict_route": true,
+      "mtu": 9000,
+      "sniff": true,
+      "sniff_override_destination": true,
+      "domain_strategy": "ipv4_only"
+    }
+  ],
+  "outbounds": [
+    { "type": "direct", "tag": "direct" },
+    { "type": "block", "tag": "block" },
+    { "type": "dns", "tag": "dns-out" },
+    { "type": "freedom", "tag": "freedom", "domain_strategy": "use_ip" }
+  ],
+  "route": {
+    "rule_set": [
+      {
+        "tag": "geoip-cn",
+        "type": "local",
+        "format": "binary",
+        "path": "GEOIP_PATH"
+      },
+      {
+        "tag": "geosite-cn",
+        "type": "local",
+        "format": "binary",
+        "path": "GEOSITE_PATH"
+      },
+      {
+        "tag": "geosite-category-ads",
+        "type": "local",
+        "format": "binary",
+        "path": "geosite-category-ads.srs"
+      },
+      {
+        "tag": "geosite-category-malicious",
+        "type": "local",
+        "format": "binary",
+        "path": "geosite-category-malicious.srs"
+      },
+      {
+        "tag": "geosite-category-ai",
+        "type": "local",
+        "format": "binary",
+        "path": "geosite-category-ai.srs"
+      },
+      {
+        "tag": "geosite-category-streaming",
+        "type": "local",
+        "format": "binary",
+        "path": "geosite-category-streaming.srs"
+      }
+    ],
+    "rules": [
+      { "protocol": "dns", "outbound": "dns-out" },
+      { "ip_is_private": true, "outbound": "direct" },
+      { "rule_set": ["geosite-category-ads", "geosite-category-malicious"], "outbound": "block" },
+      { "geosite": "cn", "outbound": "direct" },
+      { "geoip": "cn", "outbound": "direct" },
+      { "geosite": "category-ai", "outbound": "Proxy" },
+      { "geosite": "category-streaming", "outbound": "Proxy" },
+      { "domain_suffix": ["cn"], "outbound": "direct" }
+    ],
+    "final": "Proxy",
+    "auto_detect_interface": true
+  },
+  "experimental": {
+    "clash_api": { "external_controller": "127.0.0.1:9090", "external_ui": "yacd", "secret": "" },
+    "cache_file": { "enabled": true }
+  }
+}
