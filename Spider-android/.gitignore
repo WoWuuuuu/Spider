@@ -1,8 +1,7 @@
 *.iml
 .gradle
-.kotlin/
-/local.properties
-/.idea/
+.idea
+.vscode
 .DS_Store
 build/
 /captures
@@ -10,6 +9,12 @@ build/
 .cxx
 local.properties
 /app/libs/
-/service-account-credentials.json
-/CLAUDE.md
-/.claude/
+/app/src/main/assets/sing-box
+/service_account_credentials.json
+jniLibs/
+/library/libcore_build/
+.idea/deploymentTargetDropDown.xml
+/nkmr
+
+# submodules
+/external

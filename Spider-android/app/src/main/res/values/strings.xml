@@ -1,601 +1,582 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App -->
     <string name="app_name" translatable="false">Spider</string>
-    <string name="app_version_title">App version</string>
-    <string name="language">Language</string>
-    <string name="system_default">System default</string>
-
-    <!-- Common Actions -->
-    <string name="ok">OK</string>
-    <string name="cancel">Cancel</string>
-    <string name="save">Save</string>
-    <string name="discard">Discard</string>
-    <string name="edit">Edit</string>
-    <string name="close">Close</string>
-    <string name="dismiss">Dismiss</string>
+    <string name="app_name_long" translatable="false">Spider for Android</string>
+    <string name="app_desc">The universal proxy toolchain for Android, written in Kotlin.</string>
+    <string name="project">Project</string>
+    <string name="github">Source code</string>
+    <string name="telegram">Telegram update channel</string>
+    <string name="oss_licenses">Open source licenses</string>
+    <string name="app_version">Version</string>
+    <string name="version_x">Version (%s)</string>
+    <string name="logcat">Export debug information</string>
+    <string name="menu_configuration">Configuration</string>
+    <string name="menu_group">Group</string>
+    <string name="menu_about">About</string>
+    <string name="theme">Theme</string>
+    <string name="document">Document</string>
+    <string name="group_default">Ungrouped</string>
+    <string name="quick_toggle">Toggle</string>
+    <string name="quick_enable">Enable</string>
+    <string name="quick_disable">Disable</string>
+    <string name="tile_title">Switcher</string>
+    <string name="menu_traffic">Traffic</string>
+    <string name="menu_dashboard">sing-box Dashboard</string>
+    <!-- externel -->
+    <string name="action_copy">Copy</string>
+    <string name="action_open">Open</string>
+    <!-- group -->
+    <string name="group_name">Group name</string>
+    <string name="group_update">Update</string>
+    <string name="group_subscription_link">Subscription Link</string>
+    <string name="group_name_required">Group name required</string>
+    <string name="group_create">Create group</string>
+    <string name="group_create_subscription">Create subscription</string>
+    <string name="update_all_subscription">Update all subscriptions</string>
+    <string name="group_edit">Edit group</string>
+    <string name="group_edit_subscription">Edit subscription</string>
+    <string name="group_status_empty">Empty group</string>
+    <string name="group_status_empty_subscription">Not updated yet</string>
+    <string name="group_status_proxies">%d Proxies</string>
+    <string name="group_status_proxies_subscription">%d Proxies | Updated on %s</string>
+    <string name="group_no_difference">%s: No difference</string>
+    <string name="group_updated">%s: Updated %d proxies</string>
+    <string name="group_show_diff">Diff</string>
+    <string name="group_diff">Diff (%s)</string>
+    <string name="group_delete_confirm_prompt">Are you sure you want to remove this group?</string>
+    <string name="group_added">Added: \n%s</string>
+    <string name="group_changed">Updated: \n%s</string>
+    <string name="group_deleted">Deleted: \n%s</string>
+    <string name="group_duplicate">Duplicate: \n%s</string>
+    <!-- misc -->
+    <string name="service_mode">Service Mode</string>
+    <string name="service_mode_proxy">Proxy only</string>
+    <string name="service_mode_vpn" translatable="false">VPN</string>
+    <string name="port_proxy">Proxy Port</string>
+    <string name="port_http">HTTP Proxy Port</string>
+    <string name="port_transproxy">Transproxy Port</string>
+    <string name="cag_route">Route Settings</string>
+    <string name="allow_access">Allow Connections from the LAN</string>
+    <string name="allow_access_sum">Bind inbound servers to 0.0.0.0</string>
+    <string name="inbound_settings">Inbound Settings</string>
+    <string name="general_settings">App Settings</string>
+    <string name="require_http">Enable HTTP inbound</string>
+    <string name="cag_ws">WebSocket Settings</string>
+    <string name="ws_max_early_data" translatable="false">Max early data</string>
+    <string name="ws_browser_forwarding">Browser Forwarding</string>
+    <string name="ws_browser_forwarding_sum">Forward corresponding WebSockets through the browser.</string>
+    <string name="speed_interval">Speed Notification Update Interval</string>
+    <string name="cag_misc">Misc Settings</string>
+    <string name="show_stop">Show Stop Button</string>
+    <string name="show_stop_sum">If you don’t want to use Quick Tile as the switch</string>
+    <string name="show_direct_speed">Show Direct Speed</string>
+    <string name="show_direct_speed_sum">Show the traffic speed without proxy in the notification as
+        well</string>
+    <string name="security_settings">TLS Security Settings</string>
+    <string name="allow_insecure">Allow Insecure</string>
+    <string name="allow_insecure_sum">Disable certificate checking. When enabled, this configuration
+        is as secure as plaintext</string>
+    <string name="traffic" translatable="false">%1$s↑ %2$s↓</string>
+    <string name="speed_detail">Proxy： %1$s↑ %2$s↓\nDirect： %3$s↑ %4$s↓</string>
+    <string name="speed">%s/s</string>
+    <string name="connection_test_testing">Testing…</string>
+    <string name="connection_test_available">Success: HTTPS handshake took %dms</string>
+    <string name="connection_test_available_http">Success: HTTP handshake took %dms</string>
+    <string name="connection_test_error">Failed: %s</string>
+    <string name="connection_test_fail">Internet Unavailable</string>
+    <string name="connection_test_error_status_code">Error code: #%d</string>
+    <string name="cag_dns">DNS Settings</string>
+    <string name="remote_dns">Remote DNS</string>
+    <string name="direct_dns">Direct DNS</string>
+    <string name="enable_dns_routing">Enable DNS Routing</string>
+    <string name="dns_routing_message">Resolve domains in bypass routes with Direct DNS. Be aware of
+        potential DNS leaks</string>
+    <string name="enable_fakedns">Enable FakeDNS</string>
+    <string name="fakedns_message">May cause other applications need to be restarted to reconnect to
+        the network after proxy stopped</string>
+    <string name="dns_hosts">Domain rewrite</string>
+    <string name="port_local_dns">Local DNS Port</string>
+    <string name="require_transproxy">Enable Transproxy Inbound</string>
+    <string name="transproxy_mode">Transproxy Mode</string>
+    <string name="connection_test_url">Connection Test URL</string>
+    <!-- proxy category -->
+    <string name="profile_name">Profile Name</string>
+    <string name="server_address">Server</string>
+    <string name="server_port">Remote Port</string>
+    <string name="username">Username</string>
+    <string name="username_opt">Username (Optional)</string>
+    <string name="password_opt">Password (Optional)</string>
+    <string name="key_opt">Key (Optional)</string>
+    <string name="password">Password</string>
+    <string name="enc_method">Encrypt Method</string>
+    <string name="protocol">Protocol</string>
+    <string name="protocol_param">Protocol Param</string>
+    <string name="obfs">Obfs</string>
+    <string name="obfs_param">Obfs Param</string>
+    <string name="uuid">User ID</string>
+    <string name="alter_id">Alter ID</string>
+    <string name="security">Transport layer encryption</string>
+    <string name="network">Network</string>
+    <string name="header_type">Header Type</string>
+    <string name="ws_host">WebSocket Host</string>
+    <string name="ws_path">WebSocket Path</string>
+    <string name="http_host">HTTP Host</string>
+    <string name="http_path">HTTP Path</string>
+    <string name="grpc_service_name">gRPC ServiceName</string>
+    <string name="tls">Use TLS</string>
+    <string name="sni">Server Name Indication</string>
+    <string name="alpn">Application-Layer Protocol Negotiation</string>
+    <string name="certificates">Certificates</string>
+    <string name="early_data_header_name">Early Data Header Name</string>
+    <string name="encryption">Encryption</string>
+    <string name="extra_headers">Extra Headers</string>
+    <string name="config_type">Config Type</string>
+    <string name="edit_config">Edit Config</string>
+    <!-- feature category -->
+    <string name="ipv6">IPv6 Route</string>
+    <string name="prefer">Prefer</string>
+    <string name="only">Only</string>
+    <string name="metered">Metered Hint</string>
+    <string name="metered_summary">Hint system to treat VPN as metered</string>
+    <string name="menu_route">Route</string>
+    <string name="route_add">Create Route</string>
+    <string name="delete_route_prompt">Are you sure you want to remove this route?</string>
+    <string name="route_name">Route Name</string>
+    <string name="route_proxy">Proxy</string>
+    <string name="route_bypass">Bypass</string>
+    <string name="route_block">Block</string>
+    <string name="route_profile">Select Profile…</string>
+    <string name="empty_route">Empty Route</string>
+    <string name="empty_route_notice">Set some rules before saving</string>
+    <string name="route_bypass_domain">Domain rule for %s</string>
+    <string name="route_play_store">Play store rule for %s</string>
+    <string name="route_bypass_ip">IP rule for %s</string>
+    <string name="route_reset">Reset</string>
+    <string name="route_manage_assets">Manage Route Assets</string>
+    <string name="route_assets">Assets</string>
+    <string name="route_rules_provider">Rule Assets Provider</string>
+    <string name="route_rules_official">Official</string>
+    <string name="route_asset_status">Local version: %s</string>
+    <string name="route_asset_no_update">No update</string>
+    <string name="route_asset_updated">Updated</string>
+    <string name="route_not_asset">Not an asset file: excepted .db, but %s</string>
+    <string name="route_opt_bypass_lan">Bypass LAN</string>
+    <string name="route_opt_block_ads">Block ADs</string>
+    <string name="route_opt_block_analysis">Block analysis</string>
+    <string name="route_opt_block_quic">Block QUIC</string>
+    <string name="domain_strategy">Domain Resolution Strategy</string>
+    <string name="traffic_sniffing">Enable Traffic Sniffing</string>
+    <string name="enable_mux">Enable Multiplexer</string>
+    <string name="mux_sum">Mux is designed to reduce TCP handshake latency, not to increase
+        connection throughput. Using Mux to watch videos, download or speed test is usually counter
+        productive. If the server does not support it, you will not be able to access the Internet.</string>
+    <string name="mux_concurrency">Mux Concurrent Connections</string>
+    <string name="tcp_keep_alive_interval">TCP keep active packet delivery interval</string>
+    <string name="proxied_apps">Apps VPN mode</string>
+    <string name="proxied_apps_summary">Configure VPN mode for selected apps</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="search_apps">Search…</string>
+    <string name="scanning">Scanning…</string>
+    <string name="invert_selections">Invert selections</string>
+    <string name="clear_selections">Clear selections</string>
+    <string name="bypass_apps">Bypass</string>
+    <string name="show_system_apps">Show system apps</string>
+    <string name="auto_connect">Auto Connect</string>
+    <string name="auto_connect_summary">Enable proxy on startup/app update if it was running before</string>
+    <string name="direct_boot_aware">Allow Toggling in Lock Screen</string>
+    <string name="direct_boot_aware_summary">Your selected profile information will be less
+        protected</string>
+    <!-- notification category -->
+    <string name="service_vpn">VPN Service</string>
+    <string name="service_proxy">Proxy Service</string>
+    <string name="forward_success">Proxy started.</string>
+    <string name="invalid_server">Invalid server name</string>
+    <string name="service_failed">Failed: </string>
     <string name="stop">Stop</string>
-    <string name="reset">Reset</string>
-    <string name="destroy">Destroy</string>
-    <string name="clear">Clear</string>
-    <string name="browse">Browse</string>
-    <string name="search">Search</string>
-    <string name="action">Action</string>
-    <string name="action_start">Start</string>
-    <string name="action_deselect">Deselect</string>
-    <string name="action_reload">Reload</string>
-    <string name="action_restart">Restart</string>
-    <string name="expand">Expand</string>
-    <string name="collapse">Collapse</string>
-    <string name="expand_all">Expand All</string>
-    <string name="collapse_all">Collapse All</string>
-    <string name="previous">Previous</string>
-    <string name="next">Next</string>
-    <string name="update">Update</string>
-    <string name="read_more">Read More</string>
-    <string name="no_thanks">No, thanks</string>
-    <string name="options">Options</string>
-    <string name="more_options">More options</string>
-
-    <!-- Common States -->
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="loading">Loading…</string>
-    <string name="calculating">Calculating...</string>
-    <string name="auto">Auto</string>
-    <string name="success">Success</string>
-    <string name="default_text">Default</string>
-
-    <!-- Navigation Titles -->
-    <string name="title_dashboard">Dashboard</string>
-    <string name="title_configuration">Profiles</string>
-    <string name="title_log">Logs</string>
-    <string name="title_settings">Settings</string>
-    <string name="title_app_settings">App</string>
-    <string name="title_new_profile">New Profile</string>
-    <string name="title_edit_profile">Edit Profile</string>
-    <string name="title_edit_configuration">Edit Configuration</string>
-    <string name="title_groups">Groups</string>
-    <string name="title_debug">Debug</string>
-    <string name="title_connections">Connections</string>
-    <string name="title_others">Others</string>
-    <string name="title_scan_result">Scan Result</string>
-
-    <!-- Status -->
-    <string name="status_default">Service not started</string>
-    <string name="status_starting">Starting</string>
-    <string name="status_stopping">Stopping</string>
-    <string name="status_started">Started</string>
-
-    <!-- Dashboard -->
-    <string name="dashboard_items">Dashboard Items</string>
-    <string name="memory">Memory</string>
-    <string name="goroutines">Goroutines</string>
-    <string name="upload">Upload</string>
-    <string name="download">Download</string>
-    <string name="connections_in">Inbound</string>
-    <string name="connections_out">Outbound</string>
-    <string name="clash_mode">Clash Mode</string>
-    <string name="mode">Mode</string>
-    <string name="system_proxy">System Proxy</string>
-    <string name="url_test">Test</string>
-    <string name="drag_handle_to_reorder">Drag handle to reorder items</string>
-    <string name="drag_to_reorder">Drag to reorder</string>
-    <string name="reset_order">Reset order</string>
-
-    <!-- Connections -->
-    <string name="empty_connections">No connections</string>
-    <string name="search_connections">Search connections…</string>
-    <string name="close_connections_confirm">Close all connections?</string>
-    <string name="connection_state_all">All</string>
-    <string name="connection_state_active">Active</string>
-    <string name="connection_state_closed">Closed</string>
-    <string name="connection_sort_date">Date</string>
-    <string name="connection_sort_traffic">Traffic</string>
-    <string name="connection_sort_traffic_total">Total Traffic</string>
-    <string name="connection_close">Close</string>
-    <string name="connection_close_all">Close All</string>
-    <string name="connection_state">State</string>
-    <string name="connection_details">Connection Details</string>
-    <string name="connection_section_basic">Basic Information</string>
-    <string name="connection_section_metadata">Metadata</string>
-    <string name="connection_section_process">Process Information</string>
-    <string name="connection_created_at">Created At</string>
-    <string name="connection_closed_at">Closed At</string>
-    <string name="connection_duration">Duration</string>
-    <string name="connection_uplink">Uplink</string>
-    <string name="connection_downlink">Downlink</string>
-    <string name="connection_inbound">Inbound</string>
-    <string name="connection_inbound_type">Inbound Type</string>
-    <string name="connection_outbound">Outbound</string>
-    <string name="connection_outbound_type">Outbound Type</string>
-    <string name="connection_ip_version">IP Version</string>
-    <string name="connection_network">Network</string>
-    <string name="connection_source">Source</string>
-    <string name="connection_destination">Destination</string>
-    <string name="connection_domain">Domain</string>
-    <string name="connection_protocol">Protocol</string>
-    <string name="connection_user">User</string>
-    <string name="connection_from_outbound">From Outbound</string>
-    <string name="connection_match_rule">Match Rule</string>
-    <string name="connection_chain">Chain</string>
-    <string name="connection_process_id">Process ID</string>
-    <string name="connection_user_id">User ID</string>
-    <string name="connection_user_name">User Name</string>
-    <string name="connection_process_path">Process Path</string>
-    <string name="connection_package_name">Package Name</string>
-
-    <!-- Profiles -->
-    <string name="no_profiles">No profiles configured</string>
+    <string name="stopping">Shutting down…</string>
+    <string name="vpn_error">%s</string>
+    <string name="vpn_permission_denied">Permission denied to create a VPN service</string>
+    <string name="reboot_required">Failed to start VPN service. You might need to reboot your
+        device.</string>
+    <!-- alert category -->
+    <string name="profile_empty">Please select a profile</string>
+    <string name="connect">Connect</string>
+    <string name="clipboard_empty">Clipboard is empty</string>
+    <!-- menu category -->
+    <string name="settings">Settings</string>
+    <string name="edit">Edit</string>
+    <string name="share">Share</string>
     <string name="add_profile">Add Profile</string>
-    <string name="update_profile">Update profile</string>
-    <string name="import_remote_profile">Import remote profile</string>
-    <string name="import_remote_profile_message">Are you sure to import remote profile %1$s? You will connect to %2$s to download the configuration.</string>
-    <string name="import_from_file_description">Import configuration from a local file</string>
-    <string name="scan_qr_code_description">Scan a configuration QR code</string>
-    <string name="create_new_profile_description">Create a new profile from scratch</string>
-    <string name="icloud_profile_unsupported">iCloud profile is not support on current platform</string>
-    <string name="profile_name">Name</string>
-    <string name="profile_type">Type</string>
-    <string name="profile_source">Source</string>
-    <string name="profile_url" translatable="false">URL</string>
-    <string name="profile_import_file">Import File</string>
-    <string name="profile_create">Create</string>
-    <string name="profile_share_url">Share URL as QR Code</string>
-    <string name="profile_input_required">Required</string>
-    <string name="profile_update">Update</string>
-    <string name="profile_auto_update">Auto Update</string>
-    <string name="profile_auto_update_interval">Auto Update Interval (Minutes)</string>
-    <string name="profile_auto_update_interval_minimum_hint">Minimum value is 15</string>
-    <string name="profile_type_local">Local</string>
-    <string name="profile_type_remote">Remote</string>
-    <string name="profile_type_remote_updated">Remote • %s</string>
-    <string name="profile_source_create_new">Create New</string>
-    <string name="profile_source_import">Import</string>
-    <string name="profile_add_import_file">Import from file</string>
-    <string name="profile_add_scan_qr_code">Scan QR code</string>
-    <string name="profile_add_create_manually">Create Manually</string>
-    <string name="profile_override">Profile Override</string>
-    <string name="basic_information">Basic Information</string>
-    <string name="remote_configuration">Remote Configuration</string>
-    <string name="last_updated_format">Last updated: %s</string>
-    <string name="content">Content</string>
-    <string name="json_viewer">JSON Viewer</string>
-    <string name="json_editor">JSON Editor</string>
-    <string name="view_configuration">View Configuration</string>
-    <string name="save_as_file">Save As File</string>
-    <string name="share_as_file">Share As File</string>
-    <string name="save_content_json">Save Content JSON File</string>
-    <string name="share_content_json">Share Content JSON File</string>
-    <string name="unsaved_changes">Unsaved Changes</string>
-    <string name="unsaved_changes_message">You have unsaved changes. Do you want to discard them?</string>
-    <string name="import_profile_confirm_title">Import Profile</string>
-    <string name="import_profile_confirm_message">Import profile \"%s\"?</string>
-    <string name="import_action">Import</string>
-
-    <!-- Groups -->
-    <string name="group_selected_title">Selected</string>
-
-    <!-- Log -->
-    <string name="log_level">Log Level</string>
-    <string name="filter_label">Filter: %s</string>
-    <string name="clear_filter">Clear</string>
-    <string name="clear_logs">Clear Logs</string>
-    <string name="search_logs_placeholder">Search logs…</string>
-    <string name="logs_copied_to_clipboard">Logs copied to clipboard</string>
-    <string name="no_logs_to_copy">No logs to copy</string>
-    <string name="no_logs_to_share">No logs to share</string>
-    <string name="intent_share_logs">Share Logs</string>
-    <string name="selected_count">%d selected</string>
-    <string name="not_selected">Not selected</string>
-    <string name="save_to_clipboard">To Clipboard</string>
-    <string name="save_to_file">To File</string>
-
-    <!-- Settings -->
-    <string name="service">Service</string>
-    <string name="core">Core</string>
-    <string name="core_version_title">Core Version</string>
-    <string name="core_data_size">Data Size</string>
-    <string name="about">About</string>
-    <string name="source_code">Source Code</string>
-    <string name="sponsor">Sponsor</string>
-    <string name="working_directory">Working Directory</string>
-    <string name="beta_settings">Beta Settings</string>
-    <string name="disable_deprecated_warnings">Disable Deprecated Warnings</string>
-    <string name="cache_size">Cache Size</string>
-    <string name="clear_cache">Clear Cache</string>
-    <string name="notification_settings">Notification</string>
-    <string name="enable_notification">Enable Notification</string>
-    <string name="dynamic_notification">Display realtime speed in notification</string>
-    <string name="disable_notification_description">Due to Android restrictions, you must first grant notification permission, then go to Settings to disable the notification category.</string>
-    <string name="disable_notification_description_legacy">Due to Android restrictions, you must first grant notification permission, then go to App Info to disable notifications.</string>
-    <string name="allow_bypass">Allow Bypass</string>
-    <string name="allow_bypass_description">If enabled, applications can bypass this VPN connection and instead use the underlying network directly.</string>
-    <string name="android_documentation">Android Documentation</string>
-    <string name="auto_redirect">Auto Redirect</string>
-    <string name="auto_redirect_description">ROOT permission required</string>
-    <string name="system_http_proxy">System HTTP Proxy</string>
-    <string name="update_settings">Update Settings</string>
-
-    <!-- Per-App Proxy -->
-    <string name="per_app_proxy">Per-App Proxy</string>
-    <string name="per_app_proxy_mode">Proxy Mode</string>
-    <string name="per_app_proxy_mode_include">Include</string>
-    <string name="per_app_proxy_mode_include_description">Only selected apps are allowed through the VPN</string>
-    <string name="per_app_proxy_mode_exclude">Exclude</string>
-    <string name="per_app_proxy_mode_exclude_description">Selected apps will be excluded from VPN</string>
-    <string name="per_app_proxy_action_copy">Copy</string>
-    <string name="per_app_proxy_action_copy_package_name">Package Name</string>
-    <string name="per_app_proxy_action_copy_uid">UID</string>
-    <string name="per_app_proxy_sort_mode">Sort By</string>
-    <string name="per_app_proxy_sort_mode_name">By name</string>
-    <string name="per_app_proxy_sort_mode_package_name">By package name</string>
-    <string name="per_app_proxy_sort_mode_uid">By UID</string>
-    <string name="per_app_proxy_sort_mode_install_time">By install time</string>
-    <string name="per_app_proxy_sort_mode_update_time">By update time</string>
-    <string name="per_app_proxy_sort_mode_reverse">Reverse</string>
-    <string name="per_app_proxy_filter">Filter</string>
-    <string name="per_app_proxy_hide_system_apps">Hide system apps</string>
-    <string name="per_app_proxy_hide_offline_apps">Hide offline apps</string>
-    <string name="per_app_proxy_hide_disabled_apps">Hide disabled apps</string>
-    <string name="per_app_proxy_select">Select</string>
-    <string name="per_app_proxy_select_all">Select all</string>
-    <string name="per_app_proxy_select_none">Deselect all</string>
-    <string name="per_app_proxy_backup">Backup</string>
-    <string name="per_app_proxy_import">Import from clipboard</string>
-    <string name="per_app_proxy_export">Export to clipboard</string>
-    <string name="per_app_proxy_scan">Scan</string>
-    <string name="per_app_proxy_scan_china_apps">China apps</string>
-    <string name="per_app_proxy_manage">Manage</string>
-    <string name="content_description_app_icon">App icon</string>
-    <string name="per_app_proxy_managed_mode">Managed Mode</string>
-    <string name="per_app_proxy_managed_mode_description">Automatically Exclude China apps</string>
-    <string name="per_app_proxy_package_query_mode">Mode</string>
-    <string name="per_app_proxy_shizuku_required">When installed from the Play Store, per-app proxy requires Shizuku. Google Play refuses to allow us to use the QUERY_ALL_PACKAGES permission (while not prohibiting other similar apps from doing so), which is required for listing apps.</string>
-    <string name="per_app_proxy_root_required">When installed from the Play Store, per-app proxy requires ROOT. Google Play refuses to allow us to use the QUERY_ALL_PACKAGES permission (while not prohibiting other similar apps from doing so), which is required for listing apps.</string>
-    <string name="privileged_access_required">Root or Shizuku access required to get the complete app list</string>
-
-    <!-- Permissions -->
-    <string name="background_permission">Background permission</string>
-    <string name="background_permission_description">Apply for the necessary permissions in order for the VPN to function properly.\n\nIf you are using a device made by a Chinese company, the card may not disappear after the permission is granted.</string>
-    <string name="request_background_permission">Ignore</string>
-    <string name="location_permission_title">Location permission</string>
-    <string name="location_permission_description">Your profile contains &lt;strong&gt;&lt;tt&gt;wifi_ssid&lt;/tt&gt; or &lt;tt&gt;wifi_bssid&lt;/tt&gt; routing rules&lt;/strong&gt;. To make them work, sing-box uses the &lt;strong&gt;location&lt;/strong&gt; permission &lt;strong&gt;in the background&lt;/strong&gt; to get information about the connected Wi-Fi network. The information will be used &lt;strong&gt;for routing purposes only&lt;/strong&gt;.</string>
-    <string name="location_permission_background_description">On Android 10 and up, &lt;strong&gt;background location&lt;/strong&gt; permission is required. Select &lt;strong&gt;Allow all the time&lt;/strong&gt; to grant the permission.</string>
-    <string name="notification_permission_title">Notification permission</string>
-    <string name="notification_permission_required_description">sing-box is unable to show real-time network speeds without the permission to send notifications. Please grant the permission or disable real-time network speeds notification before starting the service.</string>
-    <string name="root_access_required">Root access required</string>
-    <string name="root_access_denied">Root access denied</string>
-
-    <!-- Updates -->
-    <string name="check_update">Check Update</string>
-    <string name="check_update_automatic">Automatic Update Check</string>
-    <string name="check_update_prompt_play">Would you like to enable automatic update checking from **Play Store**?</string>
-    <string name="check_update_prompt_github">Would you like to enable automatic update checking from **GitHub**?</string>
-    <string name="update_source">Update Source</string>
-    <string name="update_source_github">GitHub</string>
-    <string name="update_source_fdroid">F-Droid</string>
-    <string name="update_track">Update Track</string>
-    <string name="update_track_stable">Stable</string>
-    <string name="update_track_beta">Beta</string>
-    <string name="update_track_not_supported">Current track does not support update checking yet</string>
-    <string name="view_release">View Release</string>
-    <string name="downloading">Downloading…</string>
-    <string name="exporting">Exporting…</string>
-    <string name="no_updates_available">No updates available</string>
-    <string name="new_version_available">New version available: %s</string>
-    <string name="auto_update">Auto Update</string>
-    <string name="auto_update_description">Automatically download and install updates in background</string>
-    <string name="fdroid_mirror">F-Droid Mirror</string>
-    <string name="fdroid_mirror_test_all">Auto Select by Latency</string>
-    <string name="fdroid_mirror_testing">Testing…</string>
-    <string name="fdroid_mirror_latency">%d ms</string>
-    <string name="fdroid_mirror_failed">Failed</string>
-    <string name="fdroid_mirror_untested">—</string>
-    <string name="fdroid_mirror_add">Add Mirror</string>
-    <string name="fdroid_mirror_name_hint">Name</string>
-    <string name="fdroid_mirror_url_hint">URL</string>
-    <string name="fdroid_mirror_custom">Custom</string>
-    <string name="fdroid_mirror_invalid_url">Invalid URL</string>
-    <string name="fdroid_mirror_add_action">Add</string>
-    <string name="fdroid_mirror_delete">Delete</string>
-
-    <!-- Silent Install -->
-    <string name="silent_install">Silent Install</string>
-    <string name="silent_install_description">Install updates without interaction</string>
-    <string name="silent_install_method">Install Method</string>
-    <string name="silent_install_verify_failed">%s is not available or permission denied</string>
-    <string name="install_method_package_installer">PackageInstaller</string>
-    <string name="install_method_shizuku">Shizuku</string>
-    <string name="install_method_root">ROOT</string>
-    <string name="package_installer_not_available">Install permission not granted</string>
-    <string name="grant_install_permission">Grant Install Permission</string>
-    <string name="grant_install_permission_description">Allow installing apps from this source</string>
-
-    <!-- Shizuku -->
-    <string name="shizuku_not_available">Shizuku is not installed or not running</string>
-    <string name="shizuku_description">Shizuku allows apps to use system APIs directly with higher privileges</string>
-    <string name="get_shizuku">Get Shizuku</string>
-    <string name="start_shizuku">Start Shizuku</string>
-    <string name="request_shizuku">Request Shizuku</string>
-
-    <!-- Time -->
-    <string name="time_just_now">Just now</string>
-    <string name="time_yesterday">Yesterday</string>
-    <string name="time_now">Now</string>
-    <string name="time_yesterday_short">1d</string>
-    <string name="time_minutes_short">%dm</string>
-    <string name="time_hours_short">%dh</string>
-    <string name="time_days_short">%dd</string>
-    <plurals name="time_minutes_ago">
-        <item quantity="one">%d minute ago</item>
-        <item quantity="other">%d minutes ago</item>
+    <string name="select_profile">Select Profile</string>
+    <string name="action_socks" translatable="false">SOCKS</string>
+    <string name="action_http" translatable="false">HTTP</string>
+    <string name="action_shadowsocks" translatable="false">Shadowsocks</string>
+    <string name="action_shadowsocksr" translatable="false">ShadowsocksR</string>
+    <string name="action_vmess" translatable="false">VMess</string>
+    <string name="action_trojan" translatable="false">Trojan</string>
+    <string name="action_trojan_go" translatable="false">Trojan Go</string>
+    <string name="action_mieru" translatable="false">Mieru</string>
+    <string name="action_naive" translatable="false">Naïve</string>
+    <string name="action_anytls" translatable="false">AnyTLS</string>
+    <string name="action_hysteria" translatable="false">Hysteria</string>
+    <string name="action_ssh" translatable="false">SSH</string>
+    <string name="action_wireguard" translatable="false">WireGuard</string>
+    <string name="action_tuic" translatable="false">TUIC</string>
+    <string name="proxy_chain">Proxy Chain</string>
+    <string name="custom_config">Custom Config</string>
+    <string name="balancer">Balancer</string>
+    <string name="balancer_settings">Balancer Settings</string>
+    <string name="balancer_type">Type</string>
+    <string name="balancer_strategy">Strategy</string>
+    <string name="chain_settings">Chain Settings</string>
+    <string name="config_settings">Config Settings</string>
+    <string name="circular_reference">Circular reference</string>
+    <string name="circular_reference_sum">The route cannot contain itself.</string>
+    <string name="clear_profiles">Clear</string>
+    <string name="action_create_group">Empty group</string>
+    <string name="action_from_link">From subscription</string>
+    <string name="action_scan_china_apps">Scan China apps</string>
+    <string name="action_export_file">Export to file</string>
+    <string name="action_export_clipboard">Export to Clipboard</string>
+    <string name="action_export">Export</string>
+    <string name="action_import">Import from Clipboard</string>
+    <string name="action_import_file">Import from file</string>
+    <string name="action_export_msg">Successfully export!</string>
+    <string name="action_export_err">Failed to export.</string>
+    <string name="action_import_msg">Successfully import!</string>
+    <string name="action_import_err">Failed to import.</string>
+    <string name="file_manager_missing">Your device lacks an Android standard file selector, please
+        install one, such as Material Files.</string>
+    <!-- share -->
+    <!-- profile -->
+    <string name="profile_config">Profile config</string>
+    <string name="delete">Remove</string>
+    <string name="delete_confirm_prompt">Are you sure you want to remove this profile?</string>
+    <string name="share_qr_nfc">QR code</string>
+    <string name="add_profile_methods_scan_qr_code">Scan QR code</string>
+    <string name="add_profile_methods_manual_settings">Manual Settings</string>
+    <plurals name="removed">
+        <item quantity="one">Removed</item>
+        <item quantity="other">%d items removed</item>
     </plurals>
-    <plurals name="time_hours_ago">
-        <item quantity="one">%d hour ago</item>
-        <item quantity="other">%d hours ago</item>
+    <plurals name="added">
+        <item quantity="one">Added</item>
+        <item quantity="other">%d proxies added</item>
     </plurals>
-    <plurals name="time_days_ago">
-        <item quantity="one">%d day ago</item>
-        <item quantity="other">%d days ago</item>
-    </plurals>
-
-    <!-- Menu -->
-    <string name="menu_undo">Undo</string>
-    <string name="menu_redo">Redo</string>
-    <string name="menu_format">Format</string>
-    <string name="menu_delete">Delete</string>
-    <string name="menu_share">Share</string>
-
-    <!-- Errors -->
+    <string name="undo">Undo</string>
+    <string name="insecure">Insecure</string>
+    <string name="deprecated">Deprecated</string>
+    <!-- tasker -->
+    <!-- status -->
+    <string name="connecting">Connecting…</string>
+    <string name="vpn_connected">Connected, tap to check connection</string>
+    <string name="not_connected">Not connected</string>
+    <!-- subscriptions -->
+    <string name="subscriptions">Subscriptions</string>
+    <string name="cleartext_http_warning">Cleartext HTTP traffic is insecure</string>
     <string name="error_title">Error</string>
-    <string name="error_missing_vpn_permission">Missiong VPN permission</string>
-    <string name="error_empty_configuration">Empty configuration</string>
-    <string name="error_empty_file">Empty file</string>
-    <string name="error_decode_profile">Failed to decode profile: %s</string>
-    <string name="error_invalid_configuration">Invalid sing-box configuration: %s</string>
-    <string name="error_start_command_server">Start command server</string>
-    <string name="error_create_service">Create service</string>
-    <string name="error_start_service">Start service</string>
-    <string name="error_deprecated_warning">Deprecated Warning</string>
-    <string name="error_deprecated_documentation">Documentation</string>
-    <string name="file_manager_missing">Your device lacks an Android standard file selector, please install one, such as Material Files.</string>
-    <string name="no_file_manager">No file manager found</string>
+    <string name="no_proxies_found">No proxies found in the link</string>
+    <string name="no_proxies_found_in_subscription">No proxies found in the subscription</string>
+    <string name="no_proxies_found_in_file">No proxies found in the file</string>
+    <string name="no_proxies_found_in_clipboard">No proxies found in the clipboard</string>
+    <string name="deduplication">Deduplication</string>
+    <string name="donate">Donate</string>
+    <string name="donate_info">I love money</string>
+    <string name="ignore_battery_optimizations">Ignore battery optimizations</string>
+    <string name="ignore_battery_optimizations_sum">Remove some restrictions</string>
+    <!-- plugin -->
+    <string name="plugin">Plugin</string>
+    <string name="plugin_configure">Configure…</string>
+    <string name="plugin_disabled">Disabled</string>
+    <string name="plugin_unknown">Unknown plugin %s</string>
+    <string name="plugin_untrusted">Warning: This plugin does not seem to come from a known trusted
+        source.</string>
+    <string name="plugin_auto_connect_unlock_only">This plugin might not work with Auto Connect</string>
+    <string name="proxy_cat">Server Settings</string>
+    <string name="ss_cat">Shadowsocks Settings</string>
+    <string name="unsaved_changes_prompt">Changes not saved. Do you want to save?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="apply">Apply</string>
+    <string name="need_reload">Reload proxy service to apply changes</string>
+    <string name="license">License</string>
+    <string name="route_warn">Make sure you have read the documentation before adding custom rules,
+        otherwise you may not be able to connect to the Internet.</string>
+    <string name="lines">%d Lines</string>
+    <string name="night_mode">Night Mode</string>
+    <string name="follow_system">Follow System</string>
+    <string name="enable">Enable</string>
+    <string name="disable">Disable</string>
+    <string name="auto">Auto</string>
+    <string name="enable_log">Enable Log</string>
+    <string name="enable_log_sum">For debugging purposes</string>
+    <string name="list">List</string>
+    <string name="random">Random</string>
+    <string name="leastPing" translatable="false">Ping</string>
+    <string name="api_port">API Port</string>
+    <string name="probe_interval">Balancer observation interval</string>
+    <string name="standard">Standard</string>
+    <string name="v2rayn" translatable="false">V2RayN</string>
+    <string name="available" translatable="false">%dms</string>
+    <string name="unavailable">Unavailable</string>
+    <string name="always_show_address">Always Show Address</string>
+    <string name="always_show_address_sum">Always display the server address on the configuration
+        card</string>
+    <string name="clear_traffic_statistics">Clear traffic statistics</string>
+    <string name="connection_test">Connection test</string>
+    <string name="connection_test_clear_results">Clear test results</string>
+    <string name="connection_test_tcp_ping" translatable="false">TCPing</string>
+    <string name="connection_test_tcp_ping_unavailable">TCPing unavailable</string>
+    <string name="connection_test_icmp_ping" translatable="false">ICMPing</string>
+    <string name="connection_test_icmp_ping_unavailable">ICMPing unavailable</string>
+    <string name="connection_test_url_test" translatable="false">URL Test</string>
+    <string name="connection_test_domain_not_found">Domain not found</string>
+    <string name="connection_test_refused">Connection refused</string>
+    <string name="connection_test_unreachable">Unreachable</string>
+    <string name="connection_test_timeout">Timeout</string>
+    <string name="append_http_proxy">Append HTTP Proxy to VPN</string>
+    <string name="append_http_proxy_sum">HTTP proxy will be used directly from (browser/ some
+        supported apps), without going through the virtual NIC device (Android 10+)</string>
+    <string name="protocol_settings">Protocol Settings</string>
+    <string name="trojan_provider">Trojan Provider</string>
+    <string name="group_basic">Basic</string>
+    <string name="group_settings">Group Settings</string>
+    <string name="subscription">Subscription</string>
+    <string name="subscription_settings">Subscription Settings</string>
+    <string name="group_type">Group Type</string>
+    <string name="subscription_type">Subscription Type</string>
+    <string name="delete_group_prompt">Are you sure you want to remove this group?</string>
+    <string name="force_resolve">Force Resolve</string>
+    <string name="force_resolve_sum">Resolve all domain names to IP addresses when updating. Host
+        and SNI will be automatically appended if possible</string>
+    <string name="deduplication_sum">Remove duplicate configurations when updating</string>
+    <string name="raw">Raw</string>
+    <string name="update_settings">Update Settings</string>
+    <string name="auto_update">Auto Update</string>
+    <string name="auto_update_delay">Auto Update Delay (In minutes)</string>
+    <string name="update_when_connected_only">Update only when connected</string>
+    <string name="update_when_connected_only_sum">Prevent IP address leakage</string>
+    <string name="subscription_user_agent">UserAgent</string>
+    <string name="confirm">Confirm</string>
+    <string name="missing_plugin">Missing Plugin</string>
+    <string name="profile_requiring_plugin">Profile %s requires the %s plugin to be installed, but
+        it was not found.</string>
+    <string name="action_learn_more">LEARN MORE</string>
+    <string name="action_download">DOWNLOAD</string>
+    <string name="install_from_play_store">Install from Play Store</string>
+    <string name="install_from_fdroid">Install from F-Droid</string>
+    <string name="download">Download</string>
+    <string name="ooc_subscription_token" translatable="false">OOCv1 API Token</string>
+    <string name="ooc_subscription_token_invalid">Invalid OOCv1 Token</string>
+    <string name="update_subscription_warning">Proxy is not connected, are you sure you want to
+        continue updating?</string>
+    <string name="ooc_warning">Warning</string>
+    <string name="ooc_missing_protocol">The subscription requires support for protocol %s, but it
+        cannot be found. Unsupported profiles will be ignored.</string>
+    <string name="service_subscription">Subscription Update Service</string>
+    <string name="subscription_update">Subscription Update</string>
+    <string name="subscription_update_message">Updating %s …</string>
+    <string name="group_filter">Filter</string>
+    <string name="subscription_used">%s Used</string>
+    <string name="subscription_traffic">%s Used / %s Remaining</string>
+    <string name="subscription_expire">Expire: %s</string>
+    <string name="subscription_import">Import subscription</string>
+    <string name="subscription_import_message">Confirm you want to import subscription %s? If you
+        are coming from an untrusted source, doing this may result in your IP and this behavior
+        being leaked.</string>
+    <string name="profile_import">Import profile</string>
+    <string name="profile_import_message">Confirm you want to import profile %s?</string>
+    <string name="clear_profiles_message">Are you sure you want to clear this group?</string>
+    <string name="apps">Applications</string>
+    <string name="select_apps">Select Applications</string>
+    <string name="apps_message">%d Applications</string>
+    <string name="hysteria_obfs">Obfuscation Password</string>
+    <string name="hysteria_auth_type">Authentication Type</string>
+    <string name="hysteria_auth_payload">Authentication Payload</string>
+    <string name="hysteria_upload_mbps">Max Upload Speed (in Mbps)</string>
+    <string name="hysteria_download_mbps">Max Download Speed (in Mbps)</string>
+    <string name="experimental_settings">Experimental</string>
+    <string name="hysteria_stream_receive_window">QUIC Stream Receive Window</string>
+    <string name="hysteria_connection_receive_window">QUIC Connection Receive Window</string>
+    <string name="hysteria_disable_mtu_discovery">Disable Path MTU Discovery</string>
+    <string name="group_order">Order</string>
+    <string name="group_order_origin">Origin</string>
+    <string name="group_order_by_name">By Name</string>
+    <string name="group_order_by_delay">By Delay</string>
+    <string name="plugin_exists_but_on_shit_system">Profile %s requires the %s plugin, but your
+        proprietary equipment vendor (usually surveillance capital giants and malware maker)
+        tampered with your Android, making the plugin unusable.</string>
 
-    <!-- Failed Operations -->
-    <string name="failed_save_profile">Failed to save profile: %s</string>
-    <string name="failed_save_logs">Failed to save logs: %s</string>
-    <string name="failed_share_logs">Failed to share logs: %s</string>
-    <string name="failed_read_configuration">Failed to read configuration: %s</string>
+    <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android Plugin)</string>
+    <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks Android Plugin)</string>
 
-    <!-- Success Messages -->
-    <string name="success_profile_saved">Profile saved successfully</string>
-    <string name="success_logs_saved">Logs saved successfully</string>
-    <string name="success_configuration_saved">Configuration saved</string>
-    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="traffic_uplink" translatable="false">%s | %s/s ↑</string>
+    <string name="traffic_downlink" translatable="false">%s | %s/s ↓</string>
 
-    <!-- Toast Messages -->
-    <string name="toast_clipboard_empty">Clipboard is empty</string>
-    <string name="toast_copied_to_clipboard">Exported to clipboard</string>
-    <string name="toast_imported_from_clipboard">Imported from clipboard</string>
+    <string name="traffic_uplink_total" translatable="false">%s ↑</string>
+    <string name="traffic_downlink_total" translatable="false">%s ↓</string>
 
-    <!-- Scanning -->
-    <string name="profile_add_scan_use_front_camera">Front camera</string>
-    <string name="profile_add_scan_use_vendor_analyzer">MLKit analyzer</string>
-    <string name="profile_add_scan_enable_torch">Torch</string>
-    <string name="message_scanning">Scanning…</string>
-    <string name="message_scan_app_no_apps_found">No matching apps found</string>
-    <string name="message_scan_app_found">Found the following apps, please choose the action you want.</string>
+    <string name="tcp_connections">%d TCP connections</string>
+    <string name="udp_connections">%d UDP connections</string>
 
-    <!-- Icon Selection -->
-    <string name="icon">Icon</string>
-    <string name="icon_count_format">%d icons</string>
-    <string name="no_icons_found">No icons found</string>
-    <string name="no_icons_match">No icons match \"%s\"</string>
-    <string name="profile_icon">Profile Icon</string>
-    <string name="select_icon">Select Icon</string>
-    <string name="select_profile_icon">Select Profile Icon</string>
-    <string name="search_icons_placeholder">Search icons...</string>
-    <string name="search_icons">Search icons</string>
-    <string name="close_search">Close search</string>
-    <string name="current_icon_format">Current: %s</string>
-    <string name="categories">Categories</string>
-    <string name="all_icons">All Icons</string>
-    <string name="back_to_categories">Back to categories</string>
+    <string name="copy_label">Copy Name</string>
+    <string name="copy_package_name">Copy Package Name</string>
+    <string name="open_app">Open App</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="open_market">Open Market</string>
+    <string name="create_rule">Create Rule</string>
 
-    <!-- QR Code -->
+    <string name="copy_success">Copy success!</string>
+    <string name="copy_failed">Copy failed.</string>
+    <string name="app_no_launcher">The app has no interface.</string>
+    <string name="route_for">Rule for %s</string>
 
-    <!-- QR Stream (QRS) -->
-    <string name="share_as_qrs">Share as QR Stream</string>
-    <string name="qrs_fps">FPS</string>
-    <string name="qrs_slice_size">Slice Size</string>
-    <string name="qrs_what_is_qrs">What is QRS</string>
+    <string name="route_need_vpn">Routing rule %s relies on the VPN to be in effect, so it is
+        ignored.</string>
 
-    <!-- Search -->
-    <string name="search_placeholder">Find in document</string>
+    <string name="profile_traffic_statistics">Profile Traffic Statistics</string>
+    <string name="profile_traffic_statistics_summary">When disabled, the used traffic will not be
+        counted</string>
+    <string name="no_statistics">No statistics yet</string>
+    <string name="app_statistics_disabled">App Traffic statistics disabled</string>
+    <string name="ssh_auth_type_none">None</string>
+    <string name="ssh_public_key">Public Key</string>
+    <string name="ssh_private_key">Private Key</string>
+    <string name="ssh_private_key_passphrase">Private Key Passphrase</string>
+    <string name="translate_platform">Translate Platform</string>
+    <string name="menu_tools">Tools</string>
+    <string name="menu_log">Logs</string>
+    <string name="clear_logcat">Clear Logcat</string>
+    <string name="wireguard_local_address">Local Address</string>
+    <string name="wireguard_public_key">Peer Public Key</string>
+    <string name="wireguard_psk">Peer Pre-Shared Key</string>
 
-    <!-- Content Descriptions (Accessibility) -->
-    <string name="content_description_back">Back</string>
-    <string name="content_description_scroll_to_bottom">Scroll to bottom</string>
-    <string name="content_description_exit_selection_mode">Exit selection mode</string>
-    <string name="content_description_copy_selected">Copy selected</string>
-    <string name="content_description_clear_search">Clear search</string>
-    <string name="content_description_qr_code">QR Code</string>
-    <string name="content_description_resume_logs">Resume logs</string>
-    <string name="content_description_pause_logs">Pause logs</string>
-    <string name="content_description_collapse_search">Collapse search</string>
-    <string name="content_description_search_logs">Search logs</string>
+    <string name="cloudflare_wrap" translatable="false">Cloudflare Warp</string>
+    <string name="warp_license">CloudFlare Warp is a free WireGuard VPN provider. By using it, you
+        agree to the TOS.</string>
+    <string name="warp_generate">Generate Configuration</string>
+    <string name="generating">Generating…</string>
+    <string name="tun_implementation">TUN Implementation</string>
+    <string name="destination_override">Override Destination</string>
+    <string name="destination_override_summary">Use the sniffed domain to overwrite the destination
+        address, not just for routing</string>
+    <string name="resolve_destination">Resolve Destination</string>
+    <string name="resolve_destination_summary">If the destination address is a domain, it is then
+        passed out based on the IPv6 strategy (conflicts with FakeDNS)</string>
+    <string name="pcap" translatable="false">Pcap</string>
+    <string name="pcap_notice">Pcap files will be saved to %s</string>
+    <string name="naive_insecure_concurrency">Insecure Concurrency</string>
+    <string name="naive_insecure_concurrency_summary">Use N concurrent tunnel connections to be more
+        robust under bad network conditions. More connections make the tunneling easier to detect
+        and less secure. This project strives for the strongest security against traffic analysis.
+        Using it in an insecure way defeats its purpose. \n\nIf you must use this, try N=2 first to
+        see if it solves your issues. Strongly recommend against using more than 4 connections here.</string>
 
-    <!-- Tools -->
-    <string name="title_tools">Tools</string>
-    <string name="title_network">Network</string>
-    <string name="network_quality">Network Quality</string>
-    <string name="network_quality_url">URL</string>
-    <string name="network_quality_serial">Serial</string>
-    <string name="network_quality_http3">HTTP/3</string>
-    <string name="network_quality_max_runtime">Max Runtime</string>
-    <string name="network_quality_max_runtime_30s">30s</string>
-    <string name="network_quality_max_runtime_60s">60s</string>
-    <string name="network_quality_start">Start Test</string>
-    <string name="network_quality_cancel">Cancel Test</string>
-    <string name="network_quality_idle_latency">Idle Latency</string>
-    <string name="network_quality_download">Download</string>
-    <string name="network_quality_upload">Upload</string>
-    <string name="network_quality_download_rpm">Download RPM</string>
-    <string name="network_quality_upload_rpm">Upload RPM</string>
-    <string name="network_quality_confidence_high">Confidence High</string>
-    <string name="network_quality_confidence_medium">Confidence Medium</string>
-    <string name="network_quality_confidence_low">Confidence Low</string>
-    <string name="network_quality_metered_title">Metered Connection</string>
-    <string name="network_quality_metered_message">You\'re on a metered connection. This test will use a significant amount of data.</string>
-    <string name="network_quality_metered_continue">Continue</string>
-    <string name="tool_configuration">Configuration</string>
-    <string name="tool_results">Results</string>
-    <string name="tool_outbound">Outbound</string>
-    <string name="tool_default_outbound">Default</string>
+    <string name="stun_test">NAT behaviour discovery</string>
+    <string name="stun_test_summary">Determine the client\'s NAT mapping behaviour and the NAT
+        filtering behaviour defined in RFC 3478 using STUN.</string>
+    <string name="start">Start</string>
+    <string name="stun_attest_loading">This may take a few minutes…</string>
+    <string name="nat_stun_server_hint">Stun server</string>
+    <string name="nat_result_hint">NAT check result</string>
+    <string name="tools_network">Network</string>
+    <string name="mtu" translatable="false">MTU</string>
 
-    <!-- Tailscale -->
-    <string name="tailscale" translatable="false">Tailscale</string>
-    <string name="tailscale_with_tag" translatable="false">Tailscale: %s</string>
-    <string name="tailscale_endpoints">Endpoints</string>
+    <string name="backup">Backup</string>
+    <string name="backup_groups_and_configurations">Groups and configurations</string>
+    <string name="backup_rules">Routing rules</string>
+    <string name="backup_settings">Settings</string>
+    <string name="backup_summary">If the routing settings are not backed up with configurations,
+        then custom outbounds will be lost.</string>
+    <string name="backup_not_file">Not an backup file: excepted .json, but %s</string>
+    <string name="invalid_backup_file">Invalid backup file</string>
+    <string name="backup_import">Import</string>
+    <string name="backup_import_summary">Importing will overwrite the existing data.</string>
+    <string name="backup_importing">Importing…</string>
 
-    <string name="tailscale_status">Status</string>
-    <string name="tailscale_state">State</string>
-    <string name="tailscale_network">Network</string>
-    <string name="tailscale_magic_dns" translatable="false">MagicDNS</string>
-    <string name="tailscale_hostname">Hostname</string>
-    <string name="tailscale_open_auth_url">Open Auth URL</string>
-    <string name="tailscale_open_auth_url_qr_code">Show Auth URL QR Code</string>
-    <string name="tailscale_this_device">This Device</string>
-    <string name="tailscale_logout">Log out</string>
-    <string name="tailscale_connected">Connected</string>
-    <string name="tailscale_not_connected">Not Connected</string>
-    <string name="tailscale_addresses">Tailscale Addresses</string>
-    <string name="tailscale_details">Details</string>
-    <string name="tailscale_key_expiry">Key Expiry</string>
-    <string name="tailscale_os" translatable="false">OS</string>
-    <string name="tailscale_exit_node">Exit Node</string>
-    <string name="tailscale_active">Active</string>
-    <string name="tailscale_ipv4" translatable="false">IPv4</string>
-    <string name="tailscale_ipv6" translatable="false">IPv6</string>
-    <string name="tailscale_ping">Ping</string>
-    <string name="tailscale_ping_start">Start</string>
-    <string name="tailscale_ping_stop">Stop</string>
-    <string name="tailscale_ping_direct">Direct connection</string>
-    <string name="tailscale_ping_derp">DERP-relayed connection</string>
-    <string name="tailscale_shared_in">Shared in</string>
-    <string name="tailscale_expired">Expired</string>
-    <string name="tailscale_expires_relative">Expires %1$s</string>
-    <string name="tailscale_key_expiry_disabled">Key expiry disabled</string>
-    <string name="tailscale_last_seen">Last Seen</string>
-    <string name="tailscale_ssh" translatable="false">SSH</string>
-    <string name="tailscale_available">Available</string>
-    <string name="tailscale_yes">Yes</string>
+    <string name="packet_encoding">Packet Encoding</string>
+    <string name="acquire_wake_lock">Acquire WakeLock</string>
+    <string name="release_wake_lock">Release WakeLock</string>
+    <string name="acquire_wake_lock_summary">Keep the CPU on</string>
+    <string name="action_switch">Switch</string>
 
-    <!-- Tailscale SSH -->
-    <string name="tailscale_ssh_connect">Connect via SSH</string>
-    <string name="tailscale_ssh_options">SSH Options</string>
-    <string name="tailscale_ssh_username">Username</string>
-    <string name="tailscale_ssh_remember_options">Remember SSH Options</string>
-    <string name="tailscale_ssh_quick_connect">Quick Connect</string>
-    <string name="tailscale_ssh_quick_connect_description">If enabled, you can quickly connect to this peer via the context menu (long press) on the Tailscale entry in Tools and on peer entries in the peer list.\n\nThis peer will also appear in the New Session menu when connected to other peers via SSH.</string>
-    <string name="tailscale_ssh_terminal_hint">You can customize the terminal appearance in Settings → Termux Configuration.</string>
-    <string name="tailscale_ssh_connect_button">Connect</string>
-    <string name="tailscale_ssh_connecting">Connecting…</string>
-    <string name="tailscale_ssh_no_sessions">No active sessions</string>
-    <string name="tailscale_ssh_new_session">New session</string>
+    <string name="tuic_udp_relay_mode">UDP Relay Mode</string>
+    <string name="tuic_congestion_controller">Congestion Controller</string>
+    <string name="tuic_disable_sni">Disable SNI</string>
+    <string name="tuic_reduce_rtt">Enable 0-RTT QUIC handshake</string>
 
-    <!-- Terminal Configuration -->
-    <string name="tailscale_terminal_config">Termux Configuration</string>
-    <string name="tailscale_terminal_color_theme">Color Theme</string>
-    <string name="tailscale_terminal_light_theme">Light Theme</string>
-    <string name="tailscale_terminal_dark_theme">Dark Theme</string>
-    <string name="tailscale_terminal_font_config">Font</string>
-    <string name="tailscale_terminal_font">Font Family</string>
-    <string name="tailscale_terminal_font_size">Font Size</string>
-    <string name="tailscale_terminal_font_default">Default</string>
-    <string name="tailscale_terminal_font_system">System Fonts</string>
-    <string name="tailscale_terminal_font_imported">Imported Fonts</string>
-    <string name="tailscale_terminal_import_font">Import from File</string>
-    <string name="tailscale_terminal_search_themes">Search themes</string>
-
-    <!-- STUN Test -->
-    <string name="stun_test">STUN Test</string>
-    <string name="stun_server">Server</string>
-    <string name="stun_start">Start Test</string>
-    <string name="stun_cancel">Cancel Test</string>
-    <string name="stun_external_address">External Address</string>
-    <string name="stun_latency">Latency</string>
-    <string name="stun_nat_mapping">NAT Mapping</string>
-    <string name="stun_nat_filtering">NAT Filtering</string>
-    <string name="stun_nat_type_detection">NAT Type Detection</string>
-    <string name="stun_nat_not_supported">Not supported by server</string>
-
-    <!-- Shared Report -->
-    <string name="report_empty">Empty</string>
-    <string name="report_section_reports">Reports</string>
-    <string name="report_section_files">Files</string>
-    <string name="report_delete_all">Delete All</string>
-    <string name="report_delete">Delete</string>
-    <string name="report_share">Share</string>
-    <string name="report_share_with_config">Share With Configuration</string>
-    <string name="report_metadata">Metadata</string>
-    <string name="report_configuration">Configuration</string>
-    <string name="report_origin_local">Local</string>
-    <string name="service_not_started">Service not started</string>
-    <string name="service_reload_required">Reload service to apply changes</string>
-    <string name="service_restart_required">Restart service to apply changes</string>
-
-    <!-- Crash Report -->
-    <string name="crash_report">Crash Report</string>
-    <string name="crash_report_go_log">Go Crash Log</string>
-    <string name="crash_report_jvm_log">JVM Crash Log</string>
-    <string name="crash_report_description">You will receive a report when a crash occurs.</string>
-
-    <!-- OOM Report -->
-    <string name="oom_report">OOM Report</string>
-    <string name="oom_report_description">When memory limit is enabled, you will receive a report if the service memory exceeds the limit. You can also manually trigger report collection.</string>
-    <string name="oom_report_fetch">Fetch Memory Report</string>
-    <string name="oom_report_enable_memory_limit">Enable Memory Limit</string>
-    <string name="oom_report_enable_memory_limit_description">Provide a soft memory limit for the service. The service will perform multiple processes to try to stay within this memory limit.</string>
-    <string name="oom_report_memory_limit">Memory Limit</string>
-    <string name="oom_report_kill_connections">Kill Connections</string>
-    <string name="oom_report_kill_connections_description">Kill all connections to free memory when the service memory exceeds the limit.</string>
-
-    <!-- Xposed Module -->
-    <string name="xposed_description">Privileged Enhancement for sing-box</string>
-
-    <!-- Privileged Enhancement -->
-    <string name="privilege_module_title">Privilege modules</string>
-    <string name="lsposed_module_activated">LSPosed module activated</string>
-    <string name="lsposed_module_pending_update">LSPosed module update pending</string>
-    <string name="lsposed_module_pending_downgrade">LSPosed module downgrade pending</string>
-    <string name="lsposed_module_not_activated">LSPosed module not activated</string>
-    <string name="privilege_settings">Privileged Enhancement</string>
-    <string name="privilege_settings_hide_title">Hide Settings</string>
-    <string name="privilege_settings_hide_description">Resist VPN detection for selected apps</string>
-    <string name="privilege_settings_hide_manage">Manage</string>
-    <string name="privilege_settings_hide_test">Run Test</string>
-    <string name="privilege_settings_hide_test_result">Test Result</string>
-    <string name="privilege_settings_hide_test_running">Running detection tests…</string>
-    <string name="privilege_settings_hide_test_not_detected">Not detected</string>
-    <string name="privilege_settings_interface_rename_title">Interface Rename</string>
-    <string name="privilege_settings_interface_prefix">Interface prefix</string>
-    <string name="privilege_settings_vpn_detection_title">VPN Detection</string>
-    <string name="privilege_settings_view_logs">View logs</string>
-    <string name="privilege_settings_export_debug">Export debug info</string>
-    <string name="privilege_settings_hook_logs_empty">No logs</string>
-    <string name="privilege_settings_export_debug_complete">Export complete</string>
-    <string name="privilege_settings_export_debug_message">This file contains private information and should not be shared publicly. Size: %s</string>
-    <string name="privilege_settings_export_debug_failed">Failed to export debug info: %s</string>
-    <string name="privilege_settings_risky_app_title">Warning</string>
-    <string name="privilege_settings_risky_vpn_message_single">This app is a VPN app. Resisting VPN detection may cause issues: %1$s</string>
-    <string name="privilege_settings_risky_vpn_message_multi">These apps are VPN apps. Resisting VPN detection may cause issues: %1$s</string>
-    <string name="privilege_settings_risky_management_message_single">This app has network management permissions. Resisting VPN detection may cause issues: %1$s</string>
-    <string name="privilege_settings_risky_management_message_multi">These apps have network management permissions. Resisting VPN detection may cause issues: %1$s</string>
-    <string name="privilege_module_restart_action">Restart</string>
-    <string name="privilege_module_restart_failed">Failed to request reboot: %1$s</string>
-    <string name="privilege_module_restart_notification_title">Reboot required</string>
-    <string name="privilege_module_restart_notification_message">LSPosed module updated. Reboot to apply changes.</string>
-    <string name="privilege_module_restart_channel">LSPosed Module</string>
+    <string name="please_update">Your APP is too old (%s). And will stop working at %s. Please
+        update!</string>
+    <string name="please_update_force">Your APP is too old (%s). And has been stopped working at %s.
+        Please update!</string>
+    <string name="connection_test_delete_unavailable">Clear unavailable</string>
+    <string name="move">Move</string>
+    <string name="exe_prefer_provider">Plugin Preferred Provider</string>
+    <string name="create_shortcut">Create Shortcut</string>
+    <string name="app_tls_version">Subscription Min TLS Version</string>
+    <string name="hop_interval">Port Hopping Interval(second)</string>
+    <string name="domain_strategy_for_remote">Domain strategy for Remote</string>
+    <string name="domain_strategy_for_direct">Domain strategy for Direct</string>
+    <string name="domain_strategy_for_server">Domain strategy for Server address</string>
+    <string name="show_bottom_bar">Show bottom bar like SagerNet</string>
+    <string name="utls_fingerprint">uTLS fingerprint</string>
+    <string name="custom_outbound_json">Custom outbound JSON</string>
+    <string name="custom_config_json">Custom config JSON</string>
+    <string name="is_outbound_only">The JSON set is outbound</string>
+    <string name="save">Save</string>
+    <string name="set_panel_url">Set panel URL</string>
+    <string name="enable_clash_api">Enable Clash API</string>
+    <string name="log_level">Log Level</string>
+    <string name="enable_clash_api_summary">Provide clash api and yacd dashboard at 127.0.0.1:9090</string>
+    <string name="xtls_flow">Flow (VLESS Sub-protocol)</string>
+    <string name="ads">Ads</string>
+    <string name="bypass_lan_in_core">Bypass LAN in Core</string>
+    <string name="need_restart">Restart APP to apply changes</string>
+    <string name="use_selector">Use selector</string>
+    <string name="front_proxy">Front proxy</string>
+    <string name="landing_proxy">Landing Proxy</string>
+    <string name="action_shadowtls" translatable="false">ShadowTLS</string>
+    <string name="protocol_version">Protocol Version</string>
+    <string name="share_subscription">Share Subscription</string>
+    <string name="show_group_in_notification">Show group name in notification</string>
+    <string name="reset_connections">Reset Connections</string>
+    <string name="remove_duplicate">Remove duplicate servers</string>
+    <string name="mtu_help">Long press the preference to set custom MTU.</string>
+    <string name="log_level_help">Long press the preference to set the buffer size.</string>
+    <string name="tls_camouflage_settings">TLS Camouflage Settings</string>
+    <string name="test_concurrency">Test concurrency</string>
+    <string name="mux_type">Mux protocol</string>
+    <string name="sniff_routing">Sniff result for routing</string>
+    <string name="sniff_override">Sniff result for destination</string>
+    <string name="resolve_server">Resolve the server address according to the IPv6 policy</string>
+    <string name="auto_select_proxy_apps">Auto select proxy apps</string>
+    <string name="auto_select_proxy_apps_message">Auto select proxy apps, this will clear your
+        current selection.</string>
+    <string name="enable_ech">Enable ECH</string>
+    <string name="enable_ech_sum">Enable Encrypted Client Hello</string>
+    <string name="ech_settings">ECH Settings</string>
+    <string name="ech_config">ECH Config</string>
+    <string name="http_upgrade_host">HTTPUpgrade Host</string>
+    <string name="http_upgrade_path">HTTPUpgrade Path</string>
+    <string name="update_current_subscription">Update current Group\'s subscription</string>
+    <string name="group_not_subscription">Group type is not subscription</string>
+    <string name="allow_insecure_on_request_sum">Disable certificate checking when updating
+        subscriptions</string>
+    <string name="global_allow_insecure">Always allow insecure</string>
+    <string name="mux_preference">Mulitplex</string>
+    <string name="padding">Padding</string>
+    <string name="network_change_reset_connections">Reset outbound connections when network changes</string>
+    <string name="wake_reset_connections">Reset outbound connections when device wake from sleep</string>
+    <string name="preview_version_hint">This application is a preview version and may contain many problems. If you do not want to test it, please go to GitHub to download the Release version!</string>
+    <string name="check_update_preview">Check for preview version updates</string>
+    <string name="check_update_release">Check for release version updates</string>
+    <string name="update_dialog_title">New version available</string>
+    <string name="update_dialog_message">Current version: %1$s\nAvailable version: %2$s\nDo you want to download it?</string>
+    <string name="check_update_no">Check successful, but no updates.</string>
+    <string name="reset_settings">Restore default settings</string>
+    <string name="reset_settings_message">Restore default settings, but data such as nodes and groups will be retained. To completely clear data, clear application data directly in the system settings.</string>
+    <string name="minimize">Minimize</string>
+    <string name="app_list_permission_denied">Unable to read installed apps.\nThis is usually because the system has restricted app read permissions.\nPlease grant permissions in the system settings.</string>
+    <string name="open_app_settings">Open System Settings</string>
 </resources>

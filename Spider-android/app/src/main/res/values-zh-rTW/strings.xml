@@ -1,587 +1,416 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App -->
-    <string name="app_name" translatable="false">sing-box</string>
-    <string name="app_version_title">應用程式版本</string>
-    <string name="language">語言</string>
-    <string name="system_default">跟隨系統</string>
-
-    <!-- Common Actions -->
-    <string name="ok">確定</string>
-    <string name="cancel">取消</string>
-    <string name="save">儲存</string>
-    <string name="discard">放棄</string>
-    <string name="edit">編輯</string>
-    <string name="close">關閉</string>
-    <string name="dismiss">關閉</string>
+    <string name="app_desc">適用於 Android 的通用代理工具鏈，由 Kotlin 編寫。</string>
+    <string name="project">計畫</string>
+    <string name="github">原始碼</string>
+    <string name="telegram">Telegram 更新頻道</string>
+    <string name="oss_licenses">開放原始碼授權條款</string>
+    <string name="app_version">版本</string>
+    <string name="logcat">匯出 debug 所需資訊</string>
+    <string name="menu_configuration">設定檔</string>
+    <string name="menu_group">群組</string>
+    <string name="menu_about">關於</string>
+    <string name="quick_toggle">切換</string>
+    <string name="quick_enable">啟用</string>
+    <string name="quick_disable">停用</string>
+    <!-- group -->
+    <string name="group_name">群組名稱</string>
+    <string name="group_update">更新</string>
+    <string name="group_subscription_link">訂閱連結</string>
+    <string name="group_name_required">需要群組名稱</string>
+    <string name="group_create">建立新組</string>
+    <string name="group_create_subscription">建立新訂閱</string>
+    <string name="group_edit">編輯</string>
+    <string name="group_edit_subscription">編輯訂閱</string>
+    <string name="group_status_empty">空白群組</string>
+    <string name="group_status_empty_subscription">尚未更新</string>
+    <string name="group_status_proxies">%d 個代理</string>
+    <string name="group_status_proxies_subscription">%d 個代理 | 更新於 %s</string>
+    <string name="group_no_difference">%s: 沒有變化</string>
+    <string name="group_updated">%s: 更新了 %d 個代理</string>
+    <string name="group_show_diff">變化</string>
+    <string name="group_delete_confirm_prompt">您真的希望刪除這個群組嗎？</string>
+    <string name="group_added">新增：
+\n%s</string>
+    <string name="group_changed">更新：
+\n%s</string>
+    <string name="group_deleted">刪除：
+\n%s</string>
+    <!-- misc -->
+    <string name="service_mode">執行模式</string>
+    <string name="service_mode_proxy">代理</string>
+    <string name="port_proxy">代理連接埠</string>
+    <string name="port_http">HTTP 代理連接埠</string>
+    <string name="port_local_dns">本地 DNS 連接埠</string>
+    <string name="allow_access">允許來自區域網路的連線</string>
+    <string name="allow_access_sum">繫結傳入伺服器至 0.0.0.0</string>
+    <string name="cag_dns">DNS 設定</string>
+    <string name="cag_route">路由設定</string>
+    <string name="inbound_settings">傳入設定</string>
+    <string name="general_settings">應用程式設定</string>
+    <string name="require_http">啟用 HTTP 傳入伺服器</string>
+    <string name="cag_ws">WebSocket 設定</string>
+    <string name="ws_browser_forwarding">瀏覽器轉發</string>
+    <string name="ws_browser_forwarding_sum">轉傳對應的 WebSocket 連線至瀏覽器。</string>
+    <string name="speed_interval">速度通知更新間隔</string>
+    <string name="traffic">%1$s↑ %2$s↓</string>
+    <string name="speed_detail">代理： %1$s↑ %2$s↓
+\n直連： %3$s↑ %4$s↓</string>
+    <string name="speed">%s/s</string>
+    <string name="connection_test_testing">正在測試…</string>
+    <string name="connection_test_available">成功：HTTPS 握手花費 %dms</string>
+    <string name="connection_test_error">失敗：%s</string>
+    <string name="connection_test_fail">網路不可用</string>
+    <string name="connection_test_error_status_code">錯誤碼：#%d</string>
+    <!-- proxy category -->
+    <string name="profile_name">設定檔名稱</string>
+    <string name="server_address">伺服器</string>
+    <string name="server_port">遠端連接埠</string>
+    <string name="username_opt">使用者名稱（可選）</string>
+    <string name="password_opt">密碼（可選）</string>
+    <string name="password">密碼</string>
+    <string name="enc_method">加密方式</string>
+    <string name="protocol">設定</string>
+    <string name="protocol_param">通訊協定參數</string>
+    <string name="obfs">混淆</string>
+    <string name="obfs_param">混淆參數</string>
+    <string name="uuid">使用者 ID</string>
+    <string name="alter_id">替代 ID</string>
+    <string name="network">網路</string>
+    <string name="header_type">標頭類型</string>
+    <string name="tls">使用 TLS</string>
+    <string name="sni">伺服器名稱指示</string>
+    <string name="encryption">加密</string>
+    <!-- feature category -->
+    <string name="metered">計量付費提示</string>
+    <string name="metered_summary">提示系統將 VPN 視為計量付費</string>
+    <string name="menu_route">路由</string>
+    <string name="proxied_apps">應用程式 VPN 模式</string>
+    <string name="proxied_apps_summary">為被選取的應用程式設定 VPN 模式</string>
+    <string name="on">啟用</string>
+    <string name="off">停用</string>
+    <string name="search_apps">搜尋…</string>
+    <string name="scanning">正在掃描…</string>
+    <string name="invert_selections">反向選取</string>
+    <string name="clear_selections">清除選取</string>
+    <string name="bypass_apps">略過</string>
+    <string name="show_system_apps">顯示系統應用程式</string>
+    <string name="auto_connect">自動連線</string>
+    <string name="auto_connect_summary">如果代理在開機或應用更新前正在執行則自動啟動</string>
+    <string name="direct_boot_aware">允許螢幕鎖定時切換</string>
+    <string name="direct_boot_aware_summary">您選取的設定檔資訊將受到較少保護</string>
+    <!-- notification category -->
+    <string name="service_vpn">VPN 服務</string>
+    <string name="service_proxy">代理服務</string>
+    <string name="forward_success">SagerNet 已啟動。</string>
+    <string name="invalid_server">伺服器名稱無效</string>
     <string name="stop">停止</string>
-    <string name="reset">重設</string>
-    <string name="destroy">銷毀</string>
-    <string name="clear">清除</string>
-    <string name="browse">瀏覽</string>
-    <string name="search">搜尋</string>
-    <string name="action">操作</string>
-    <string name="action_start">啟動</string>
-    <string name="action_deselect">取消選擇</string>
-    <string name="action_reload">重新載入</string>
-    <string name="action_restart">重新啟動</string>
-    <string name="expand">展開</string>
-    <string name="collapse">收合</string>
-    <string name="expand_all">全部展開</string>
-    <string name="collapse_all">全部收合</string>
-    <string name="previous">上一個</string>
-    <string name="next">下一個</string>
-    <string name="update">更新</string>
-    <string name="read_more">閱讀更多</string>
-    <string name="no_thanks">不，謝謝</string>
-    <string name="options">選項</string>
-    <string name="more_options">更多選項</string>
-
-    <!-- Common States -->
-    <string name="enabled">啟用</string>
-    <string name="disabled">停用</string>
-    <string name="loading">載入中...</string>
-    <string name="calculating">計算中...</string>
-    <string name="auto">自動</string>
-    <string name="success">成功</string>
-    <string name="default_text">預設</string>
-
-    <!-- Navigation Titles -->
-    <string name="title_dashboard">儀表</string>
-    <string name="title_configuration">設定檔</string>
-    <string name="title_log">日誌</string>
-    <string name="title_settings">設定</string>
-    <string name="title_app_settings">應用程式</string>
-    <string name="title_new_profile">新增設定檔</string>
-    <string name="title_edit_profile">編輯設定檔</string>
-    <string name="title_edit_configuration">編輯設定</string>
-    <string name="title_groups">群組</string>
-    <string name="title_debug">偵錯</string>
-    <string name="title_connections">連線</string>
-    <string name="title_others">其他</string>
-    <string name="title_scan_result">掃描結果</string>
-
-    <!-- Status -->
-    <string name="status_default">服務未啟動</string>
-    <string name="status_starting">啟動中</string>
-    <string name="status_stopping">停止中</string>
-    <string name="status_started">已啟動</string>
-
-    <!-- Dashboard -->
-    <string name="dashboard_items">儀表項</string>
-    <string name="memory">記憶體</string>
-    <string name="goroutines">協程</string>
-    <string name="upload">上傳</string>
-    <string name="download">下載</string>
-    <string name="connections_in">入站</string>
-    <string name="connections_out">出站</string>
-    <string name="clash_mode">Clash 模式</string>
-    <string name="mode">模式</string>
-    <string name="system_proxy">系統代理</string>
-    <string name="url_test">測試</string>
-    <string name="drag_handle_to_reorder">拖曳控制柄以重新排序項目</string>
-    <string name="drag_to_reorder">拖曳以重新排序</string>
-    <string name="reset_order">重設順序</string>
-
-    <!-- Connections -->
-    <string name="empty_connections">無連線</string>
-    <string name="search_connections">搜尋連線…</string>
-    <string name="close_connections_confirm">關閉所有連線？</string>
-    <string name="connection_state_all">全部</string>
-    <string name="connection_state_active">活動</string>
-    <string name="connection_state_closed">已關閉</string>
-    <string name="connection_sort_date">日期</string>
-    <string name="connection_sort_traffic">流量</string>
-    <string name="connection_sort_traffic_total">總流量</string>
-    <string name="connection_close">關閉</string>
-    <string name="connection_close_all">全部關閉</string>
-    <string name="connection_state">狀態</string>
-    <string name="connection_details">連線詳情</string>
-    <string name="connection_section_basic">基本資訊</string>
-    <string name="connection_section_metadata">後設資料</string>
-    <string name="connection_section_process">行程資訊</string>
-    <string name="connection_created_at">建立時間</string>
-    <string name="connection_closed_at">關閉時間</string>
-    <string name="connection_duration">持續時間</string>
-    <string name="connection_uplink">上行</string>
-    <string name="connection_downlink">下行</string>
-    <string name="connection_inbound">入站</string>
-    <string name="connection_inbound_type">入站類型</string>
-    <string name="connection_outbound">出站</string>
-    <string name="connection_outbound_type">出站類型</string>
-    <string name="connection_ip_version">IP 版本</string>
-    <string name="connection_network">網路</string>
-    <string name="connection_source">來源</string>
-    <string name="connection_destination">目標</string>
-    <string name="connection_domain">網域</string>
-    <string name="connection_protocol">協定</string>
-    <string name="connection_user">使用者</string>
-    <string name="connection_from_outbound">來自出站</string>
-    <string name="connection_match_rule">比對規則</string>
-    <string name="connection_chain">鏈</string>
-    <string name="connection_process_id">行程 ID</string>
-    <string name="connection_user_id">使用者 ID</string>
-    <string name="connection_user_name">使用者名稱</string>
-    <string name="connection_process_path">行程路徑</string>
-    <string name="connection_package_name">套件名稱</string>
-
-    <!-- Profiles -->
-    <string name="no_profiles">尚未設定任何設定檔</string>
+    <string name="stopping">正在關閉…</string>
+    <string name="vpn_error">%s</string>
+    <string name="vpn_permission_denied">建立 VPN 服務的權限被拒</string>
+    <string name="reboot_required">無法啟動 VPN 服務，您可能需要重新啟動您的裝置。</string>
+    <!-- alert category -->
+    <string name="profile_empty">請選取一個設定檔</string>
+    <string name="connect">連線</string>
+    <string name="clipboard_empty">剪貼簿為空白</string>
+    <!-- menu category -->
+    <string name="settings">設定</string>
+    <string name="edit">編輯</string>
+    <string name="share">分享</string>
     <string name="add_profile">新增設定檔</string>
-    <string name="update_profile">更新設定檔</string>
-    <string name="import_remote_profile">匯入遠端設定</string>
-    <string name="import_remote_profile_message">您確定要匯入遠端設定檔 %1$s 嗎？您將連線到 %2$s 以下載設定。</string>
-    <string name="import_from_file_description">從本機檔案匯入設定</string>
-    <string name="scan_qr_code_description">掃描設定 QR 碼</string>
-    <string name="create_new_profile_description">從零建立新的設定檔</string>
-    <string name="icloud_profile_unsupported">目前平台不支援 iCloud 設定檔</string>
-    <string name="profile_name">名稱</string>
-    <string name="profile_type">類型</string>
-    <string name="profile_source">來源</string>
-    <string name="profile_url" translatable="false">URL</string>
-    <string name="profile_import_file">匯入檔案</string>
-    <string name="profile_create">建立</string>
-    <string name="profile_share_url">透過二維碼分享 URL</string>
-    <string name="profile_input_required">必填</string>
-    <string name="profile_update">更新</string>
-    <string name="profile_auto_update">自動更新</string>
-    <string name="profile_auto_update_interval">自動更新間隔 （分）</string>
-    <string name="profile_auto_update_interval_minimum_hint">最低值為 15</string>
-    <string name="profile_type_local">本地</string>
-    <string name="profile_type_remote">遠端</string>
-    <string name="profile_type_remote_updated">遠端 • %s</string>
-    <string name="profile_source_create_new">建立新項目</string>
-    <string name="profile_source_import">匯入</string>
-    <string name="profile_add_import_file">從檔案匯入</string>
-    <string name="profile_add_scan_qr_code">掃描二維碼</string>
-    <string name="profile_add_create_manually">手動建立</string>
-    <string name="profile_override">設定覆寫</string>
-    <string name="basic_information">基本資訊</string>
-    <string name="remote_configuration">遠端設定</string>
-    <string name="last_updated_format">最後更新：%s</string>
-    <string name="content">內容</string>
-    <string name="json_viewer">JSON 檢視器</string>
-    <string name="json_editor">JSON 編輯器</string>
-    <string name="view_configuration">檢視設定</string>
-    <string name="save_as_file">儲存為檔案</string>
-    <string name="share_as_file">分享為檔案</string>
-    <string name="save_content_json">儲存設定 JSON 檔案</string>
-    <string name="share_content_json">分享設定 JSON 檔案</string>
-    <string name="unsaved_changes">未儲存的更改</string>
-    <string name="unsaved_changes_message">您有未儲存的更改。要放棄它們嗎？</string>
-    <string name="import_profile_confirm_title">匯入設定檔</string>
-    <string name="import_profile_confirm_message">匯入設定檔「%s」？</string>
-    <string name="import_action">匯入</string>
-
-    <!-- Groups -->
-    <string name="group_selected_title">已選取</string>
-
-    <!-- Log -->
-    <string name="log_level">日誌等級</string>
-    <string name="filter_label">篩選器：%s</string>
-    <string name="clear_filter">清除</string>
-    <string name="clear_logs">清除日誌</string>
-    <string name="search_logs_placeholder">搜尋日誌…</string>
-    <string name="logs_copied_to_clipboard">日誌已複製到剪貼簿</string>
-    <string name="no_logs_to_copy">沒有日誌可複製</string>
-    <string name="no_logs_to_share">沒有日誌可分享</string>
-    <string name="intent_share_logs">分享日誌</string>
-    <string name="selected_count">已選擇 %d 項</string>
-    <string name="not_selected">未選擇</string>
-    <string name="save_to_clipboard">複製到剪貼簿</string>
-    <string name="save_to_file">儲存到檔案</string>
-
-    <!-- Settings -->
-    <string name="service">服務</string>
-    <string name="core">核心</string>
-    <string name="core_version_title">核心版本</string>
-    <string name="core_data_size">資料大小</string>
-    <string name="about">關於</string>
-    <string name="source_code">原始碼</string>
-    <string name="sponsor">贊助</string>
-    <string name="working_directory">工作目錄</string>
-    <string name="beta_settings">Beta 版設定</string>
-    <string name="disable_deprecated_warnings">停用過時警告</string>
-    <string name="cache_size">快取大小</string>
-    <string name="clear_cache">清除快取</string>
-    <string name="notification_settings">通知</string>
-    <string name="enable_notification">啟用通知</string>
-    <string name="dynamic_notification">在通知中顯示即時網速</string>
-    <string name="disable_notification_description">由於 Android 限制，您需要先授權通知權限，然後前往系統設定中關閉通知類別。</string>
-    <string name="disable_notification_description_legacy">由於 Android 限制，您需要先授權通知權限，然後前往應用程式資訊中關閉通知。</string>
-    <string name="allow_bypass">允許繞過 VPN</string>
-    <string name="allow_bypass_description">啟用後，應用程式可以繞過此 VPN 連線，直接使用底層網路。</string>
-    <string name="android_documentation">Android 文件</string>
-    <string name="auto_redirect">自動重定向</string>
-    <string name="auto_redirect_description">需要 ROOT 權限</string>
-    <string name="system_http_proxy">系統 HTTP 代理</string>
-    <string name="update_settings">更新設定</string>
-
-    <!-- Per-App Proxy -->
-    <string name="per_app_proxy">每個應用程式代理</string>
-    <string name="per_app_proxy_mode">代理模式</string>
-    <string name="per_app_proxy_mode_include">包含</string>
-    <string name="per_app_proxy_mode_include_description">僅允許選定的應用程式透過 VPN</string>
-    <string name="per_app_proxy_mode_exclude">排除</string>
-    <string name="per_app_proxy_mode_exclude_description">選定的應用將從 VPN 中排除</string>
-    <string name="per_app_proxy_action_copy">複製</string>
-    <string name="per_app_proxy_action_copy_package_name">套件名稱</string>
-    <string name="per_app_proxy_action_copy_uid">UID</string>
-    <string name="per_app_proxy_sort_mode">排序</string>
-    <string name="per_app_proxy_sort_mode_name">依名稱</string>
-    <string name="per_app_proxy_sort_mode_package_name">依套件名稱</string>
-    <string name="per_app_proxy_sort_mode_uid">依 UID</string>
-    <string name="per_app_proxy_sort_mode_install_time">依安裝時間</string>
-    <string name="per_app_proxy_sort_mode_update_time">依更新時間</string>
-    <string name="per_app_proxy_sort_mode_reverse">反向排序</string>
-    <string name="per_app_proxy_filter">篩選</string>
-    <string name="per_app_proxy_hide_system_apps">隱藏系統應用程式</string>
-    <string name="per_app_proxy_hide_offline_apps">隱藏離線應用程式</string>
-    <string name="per_app_proxy_hide_disabled_apps">隱藏停用應用程式</string>
-    <string name="per_app_proxy_select">選擇</string>
-    <string name="per_app_proxy_select_all">全選</string>
-    <string name="per_app_proxy_select_none">全部取消選取</string>
-    <string name="per_app_proxy_backup">備份</string>
-    <string name="per_app_proxy_import">從剪貼簿匯入</string>
-    <string name="per_app_proxy_export">匯出到剪貼簿</string>
-    <string name="per_app_proxy_scan">掃描</string>
-    <string name="per_app_proxy_scan_china_apps">中國應用程式</string>
-    <string name="per_app_proxy_manage">管理</string>
-    <string name="content_description_app_icon">應用程式圖示</string>
-    <string name="per_app_proxy_managed_mode">受管理模式</string>
-    <string name="per_app_proxy_managed_mode_description">自動排除中國應用程式</string>
-    <string name="per_app_proxy_package_query_mode">模式</string>
-    <string name="per_app_proxy_shizuku_required">透過 Play 商店安裝時，每個應用程式代理需要 Shizuku。Google Play 拒絕允許我們使用 QUERY_ALL_PACKAGES 權限（同時不禁止其他類似應用程式這樣做），而這是列出應用程式清單所必需的。</string>
-    <string name="per_app_proxy_root_required">透過 Play 商店安裝時，每個應用程式代理需要 ROOT。Google Play 拒絕允許我們使用 QUERY_ALL_PACKAGES 權限（同時不禁止其他類似應用程式這樣做），而這是列出應用程式清單所必需的。</string>
-    <string name="privileged_access_required">需要 Root 或 Shizuku 權限來取得完整應用程式清單</string>
-
-    <!-- Permissions -->
-    <string name="background_permission">背景執行權限</string>
-    <string name="background_permission_description">請授予必要權限，讓 VPN 可以正常運作。\n\n若您使用的是中國廠商裝置，授權後此提示卡片可能仍會顯示。</string>
-    <string name="request_background_permission">忽略電池最佳化</string>
-    <string name="location_permission_title">位置權限</string>
-    <string name="location_permission_description">您的設定檔包含 &lt;strong&gt;&lt;tt&gt;wifi_ssid&lt;/tt&gt; 或 &lt;tt&gt;wifi_bssid&lt;/tt&gt; 路由規則&lt;/strong&gt;。為了使它們正常工作，sing-box 在&lt;strong&gt;背景&lt;/strong&gt;使用 &lt;strong&gt;位置&lt;/strong&gt; 權限來取得已連線 Wi-Fi 網路資訊。這些資訊將&lt;strong&gt;僅用於路由&lt;/strong&gt;。</string>
-    <string name="location_permission_background_description">在 Android 10 及更高版本中，需要&lt;strong&gt;背景位置&lt;/strong&gt;權限。選擇&lt;strong&gt;始終允許&lt;/strong&gt;以授予權限。</string>
-    <string name="notification_permission_title">通知權限</string>
-    <string name="notification_permission_required_description">若未授予通知權限，sing-box 無法顯示即時網速。請先授權，或關閉即時網速通知後再啟動服務。</string>
-    <string name="root_access_required">需要 Root 權限</string>
-    <string name="root_access_denied">Root 權限被拒絕</string>
-
-    <!-- Updates -->
-    <string name="check_update">檢查更新</string>
-    <string name="check_update_automatic">自動檢查更新</string>
-    <string name="check_update_prompt_play">是否啟用從 **Play Store** 自動檢查更新？</string>
-    <string name="check_update_prompt_github">是否啟用從 **GitHub** 自動檢查更新？</string>
-    <string name="update_track">更新通道</string>
-    <string name="update_track_stable">穩定版</string>
-    <string name="update_track_beta">Beta 版</string>
-    <string name="update_track_not_supported">目前通道尚不支援檢查更新</string>
-    <string name="view_release">查看發布</string>
-    <string name="downloading">下載中…</string>
-    <string name="exporting">匯出中…</string>
-    <string name="no_updates_available">沒有可用的更新</string>
-    <string name="new_version_available">有新版本可用：%s</string>
-    <string name="auto_update">自動更新</string>
-    <string name="auto_update_description">在背景自動下載並安裝更新</string>
-    <string name="update_source">更新來源</string>
-    <string name="update_source_github">GitHub</string>
-    <string name="update_source_fdroid">F-Droid</string>
-    <string name="fdroid_mirror">F-Droid 鏡像</string>
-    <string name="fdroid_mirror_test_all">依延遲自動選擇</string>
-    <string name="fdroid_mirror_testing">測試中…</string>
-    <string name="fdroid_mirror_latency">%d ms</string>
-    <string name="fdroid_mirror_failed">失敗</string>
-    <string name="fdroid_mirror_untested">—</string>
-    <string name="fdroid_mirror_add">新增鏡像</string>
-    <string name="fdroid_mirror_name_hint">名稱</string>
-    <string name="fdroid_mirror_url_hint">URL</string>
-    <string name="fdroid_mirror_custom">自訂</string>
-    <string name="fdroid_mirror_invalid_url">無效的 URL</string>
-    <string name="fdroid_mirror_add_action">新增</string>
-    <string name="fdroid_mirror_delete">刪除</string>
-
-    <!-- Silent Install -->
-    <string name="silent_install">靜默安裝</string>
-    <string name="silent_install_description">無需互動即可安裝更新</string>
-    <string name="silent_install_method">安裝方式</string>
-    <string name="silent_install_verify_failed">%s 不可用或權限被拒絕</string>
-    <string name="install_method_package_installer">PackageInstaller</string>
-    <string name="install_method_shizuku">Shizuku</string>
-    <string name="install_method_root">ROOT</string>
-    <string name="package_installer_not_available">未授予安裝權限</string>
-    <string name="grant_install_permission">授予安裝權限</string>
-    <string name="grant_install_permission_description">允許從此來源安裝應用程式</string>
-
-    <!-- Shizuku -->
-    <string name="shizuku_not_available">Shizuku 未安裝或未執行</string>
-    <string name="shizuku_description">Shizuku 允許應用程式以更高權限直接使用系統 API</string>
-    <string name="get_shizuku">獲取 Shizuku</string>
-    <string name="start_shizuku">啟動 Shizuku</string>
-    <string name="request_shizuku">授權 Shizuku</string>
-
-    <!-- Time -->
-    <string name="time_just_now">剛剛</string>
-    <string name="time_yesterday">昨天</string>
-    <string name="time_now">現在</string>
-    <string name="time_yesterday_short">1天</string>
-    <string name="time_minutes_short">%d分</string>
-    <string name="time_hours_short">%d時</string>
-    <string name="time_days_short">%d天</string>
-    <plurals name="time_minutes_ago">
-        <item quantity="one">%d 分鐘前</item>
-        <item quantity="other">%d 分鐘前</item>
+    <string name="action_create_group">空白群組</string>
+    <string name="action_from_link">來自訂閱</string>
+    <string name="action_scan_china_apps">掃描中國應用程式</string>
+    <string name="action_export_file">匯出至檔案</string>
+    <string name="action_export_clipboard">匯出至剪貼簿</string>
+    <string name="action_import">自剪貼簿匯入</string>
+    <string name="action_import_file">自檔案匯入</string>
+    <string name="action_export_msg">匯出成功！</string>
+    <string name="action_export_err">匯出失敗。</string>
+    <string name="action_import_msg">匯入成功！</string>
+    <string name="action_import_err">匯入失敗。</string>
+    <!-- share -->
+    <!-- profile -->
+    <string name="profile_config">設定檔設定</string>
+    <string name="delete">刪除</string>
+    <string name="delete_confirm_prompt">您確定要刪除此設定檔嗎？</string>
+    <string name="share_qr_nfc">QR 碼</string>
+    <string name="add_profile_methods_scan_qr_code">掃描 QR 碼</string>
+    <string name="add_profile_methods_manual_settings">手動設定</string>
+    <plurals name="removed">
+        <item quantity="other">已移除 %d 個項目</item>
     </plurals>
-    <plurals name="time_hours_ago">
-        <item quantity="one">%d 小時前</item>
-        <item quantity="other">%d 小時前</item>
+    <plurals name="added">
+        <item quantity="other">已新增 %d 個代理</item>
     </plurals>
-    <plurals name="time_days_ago">
-        <item quantity="one">%d 天前</item>
-        <item quantity="other">%d 天前</item>
-    </plurals>
-
-    <!-- Menu -->
-    <string name="menu_undo">撤銷</string>
-    <string name="menu_redo">重做</string>
-    <string name="menu_format">格式化</string>
-    <string name="menu_delete">刪除</string>
-    <string name="menu_share">分享</string>
-
-    <!-- Errors -->
+    <string name="undo">復原</string>
+    <!-- tasker -->
+    <!-- status -->
+    <string name="connecting">正在連線…</string>
+    <string name="vpn_connected">已連線，輕觸以檢查連線能力</string>
+    <string name="not_connected">未連線</string>
+    <!-- subscriptions -->
+    <string name="subscriptions">訂閱</string>
+    <string name="cleartext_http_warning">純文字 HTTP 流量並不安全</string>
     <string name="error_title">錯誤</string>
-    <string name="error_missing_vpn_permission">缺少 VPN 權限</string>
-    <string name="error_empty_configuration">設定為空</string>
-    <string name="error_empty_file">空檔案</string>
-    <string name="error_decode_profile">解碼設定檔失敗：%s</string>
-    <string name="error_invalid_configuration">無效的 sing-box 設定：%s</string>
-    <string name="error_start_command_server">啟動命令伺服器</string>
-    <string name="error_create_service">建立服務</string>
-    <string name="error_start_service">啟動服務</string>
-    <string name="error_deprecated_warning">棄用警告</string>
-    <string name="error_deprecated_documentation">文件</string>
-    <string name="file_manager_missing">您的裝置缺少 Android 標準檔案選擇器，請安裝一個，例如 Material Files。</string>
-    <string name="no_file_manager">未找到檔案管理器</string>
-
-    <!-- Failed Operations -->
-    <string name="failed_save_profile">儲存設定檔失敗：%s</string>
-    <string name="failed_save_logs">儲存日誌失敗：%s</string>
-    <string name="failed_share_logs">分享日誌失敗：%s</string>
-    <string name="failed_read_configuration">讀取設定失敗：%s</string>
-
-    <!-- Success Messages -->
-    <string name="success_profile_saved">設定檔儲存成功</string>
-    <string name="success_logs_saved">日誌儲存成功</string>
-    <string name="success_configuration_saved">設定已儲存</string>
-    <string name="copied_to_clipboard">已複製到剪貼簿</string>
-
-    <!-- Toast Messages -->
-    <string name="toast_clipboard_empty">剪貼簿為空</string>
-    <string name="toast_copied_to_clipboard">已匯出到剪貼簿</string>
-    <string name="toast_imported_from_clipboard">已從剪貼簿匯入</string>
-
-    <!-- Scanning -->
-    <string name="profile_add_scan_use_front_camera">前鏡頭</string>
-    <string name="profile_add_scan_use_vendor_analyzer">使用 MLKit 掃描</string>
-    <string name="profile_add_scan_enable_torch">手電筒</string>
-    <string name="message_scanning">掃描中...</string>
-    <string name="message_scan_app_no_apps_found">找不到符合條件的應用程式</string>
-    <string name="message_scan_app_found">找到以下應用程式，請選擇您想要的操作。</string>
-
-    <!-- Icon Selection -->
-    <string name="icon">圖示</string>
-    <string name="icon_count_format">%d 個圖示</string>
-    <string name="no_icons_found">未找到圖示</string>
-    <string name="no_icons_match">沒有符合 \"%s\" 的圖示</string>
-    <string name="profile_icon">設定檔圖示</string>
-    <string name="select_icon">選擇圖示</string>
-    <string name="select_profile_icon">選擇設定檔圖示</string>
-    <string name="search_icons_placeholder">搜尋圖示...</string>
-    <string name="search_icons">搜尋圖示</string>
-    <string name="close_search">關閉搜尋</string>
-    <string name="current_icon_format">當前：%s</string>
-    <string name="categories">分類</string>
-    <string name="all_icons">所有圖示</string>
-    <string name="back_to_categories">回到分類</string>
-
-    <!-- QR Code -->
-
-    <!-- QR Stream (QRS) -->
-    <string name="share_as_qrs">分享為 QRS</string>
-    <string name="qrs_fps">FPS</string>
-    <string name="qrs_slice_size">分片大小</string>
-    <string name="qrs_what_is_qrs">什麼是 QRS</string>
-
-    <!-- Search -->
-    <string name="search_placeholder">在文件中尋找</string>
-
-    <!-- Content Descriptions (Accessibility) -->
-    <string name="content_description_back">返回</string>
-    <string name="content_description_scroll_to_bottom">滾動到底部</string>
-    <string name="content_description_exit_selection_mode">離開選取模式</string>
-    <string name="content_description_copy_selected">複製已選取項目</string>
-    <string name="content_description_clear_search">清除搜尋</string>
-    <string name="content_description_qr_code">QR 碼</string>
-    <string name="content_description_resume_logs">繼續顯示日誌</string>
-    <string name="content_description_pause_logs">暫停日誌</string>
-    <string name="content_description_collapse_search">收合搜尋</string>
-    <string name="content_description_search_logs">搜尋日誌</string>
-
-    <!-- Tools -->
-    <string name="title_tools">工具</string>
-    <string name="title_network">網路</string>
-    <string name="network_quality">網路品質</string>
-    <string name="network_quality_url">URL</string>
-    <string name="network_quality_serial">序列</string>
-    <string name="network_quality_http3">HTTP/3</string>
-    <string name="network_quality_max_runtime">最大執行時間</string>
-    <string name="network_quality_max_runtime_30s">30s</string>
-    <string name="network_quality_max_runtime_60s">60s</string>
-    <string name="network_quality_start">開始測試</string>
-    <string name="network_quality_cancel">取消測試</string>
-    <string name="network_quality_idle_latency">閒置延遲</string>
-    <string name="network_quality_download">下載</string>
-    <string name="network_quality_upload">上傳</string>
-    <string name="network_quality_download_rpm">下載 RPM</string>
-    <string name="network_quality_upload_rpm">上傳 RPM</string>
-    <string name="network_quality_confidence_high">置信度高</string>
-    <string name="network_quality_confidence_medium">置信度中</string>
-    <string name="network_quality_confidence_low">置信度低</string>
-    <string name="network_quality_metered_title">按流量計費連線</string>
-    <string name="network_quality_metered_message">您正在使用按流量計費的連線。此測試將消耗大量數據。</string>
-    <string name="network_quality_metered_continue">繼續</string>
-    <string name="tool_configuration">配置</string>
-    <string name="tool_results">結果</string>
-    <string name="tool_outbound">出站</string>
-    <string name="tool_default_outbound">默認</string>
-
-    <!-- STUN Test -->
-    <!-- Tailscale -->
-    <string name="tailscale_endpoints">端點</string>
-
-    <string name="tailscale_status">狀態</string>
-    <string name="tailscale_state">狀態</string>
-    <string name="tailscale_network">網路</string>
-    <string name="tailscale_hostname">主機名</string>
-    <string name="tailscale_open_auth_url">開啟認證連結</string>
-    <string name="tailscale_open_auth_url_qr_code">顯示認證連結 QR 碼</string>
-    <string name="tailscale_this_device">此裝置</string>
-    <string name="tailscale_connected">已連線</string>
-    <string name="tailscale_not_connected">未連線</string>
-    <string name="tailscale_addresses">Tailscale 位址</string>
-    <string name="tailscale_details">詳情</string>
-    <string name="tailscale_key_expiry">金鑰到期</string>
-    <string name="tailscale_exit_node">出口節點</string>
-    <string name="tailscale_active">活躍</string>
-    <string name="tailscale_shared_in">共享至此</string>
-    <string name="tailscale_expired">已過期</string>
-    <string name="tailscale_expires_relative">%1$s過期</string>
-    <string name="tailscale_key_expiry_disabled">金鑰到期已停用</string>
-    <string name="tailscale_last_seen">最後上線</string>
-    <string name="tailscale_available">可用</string>
-    <string name="tailscale_yes">是</string>
-
-    <!-- Tailscale SSH -->
-    <string name="tailscale_ssh_connect">透過 SSH 連接</string>
-    <string name="tailscale_ssh_options">SSH 選項</string>
-    <string name="tailscale_ssh_username">使用者名稱</string>
-    <string name="tailscale_ssh_remember_options">記住 SSH 選項</string>
-    <string name="tailscale_ssh_quick_connect">快速連接</string>
-    <string name="tailscale_ssh_quick_connect_description">啟用後，你可以透過工具中 Tailscale 條目和節點列表中節點條目的上下文選單（長按）快速連接到此節點。\n\n當透過 SSH 連接到其他節點時，此節點也會出現在新建工作階段選單中。</string>
-    <string name="tailscale_ssh_terminal_hint">你可以在設定 → Termux 配置中自定義終端外觀。</string>
-    <string name="tailscale_ssh_connect_button">連接</string>
-    <string name="tailscale_ssh_connecting">連接中…</string>
-    <string name="tailscale_ssh_no_sessions">無活動工作階段</string>
-    <string name="tailscale_ssh_new_session">新建工作階段</string>
-
-    <!-- Terminal Configuration -->
-    <string name="tailscale_terminal_config">Termux 配置</string>
-    <string name="tailscale_terminal_color_theme">顏色主題</string>
-    <string name="tailscale_terminal_light_theme">淺色主題</string>
-    <string name="tailscale_terminal_dark_theme">深色主題</string>
-    <string name="tailscale_terminal_font_config">字體</string>
-    <string name="tailscale_terminal_font">字型</string>
-    <string name="tailscale_terminal_font_size">字體大小</string>
-    <string name="tailscale_terminal_font_default">預設</string>
-    <string name="tailscale_terminal_font_system">系統字型</string>
-    <string name="tailscale_terminal_font_imported">已匯入的字型</string>
-    <string name="tailscale_terminal_import_font">從檔案匯入</string>
-    <string name="tailscale_terminal_search_themes">搜索主題</string>
-
-    <string name="stun_test">STUN 測試</string>
-    <string name="stun_server">伺服器</string>
-    <string name="stun_start">開始測試</string>
-    <string name="stun_cancel">取消測試</string>
-    <string name="stun_external_address">外部地址</string>
-    <string name="stun_latency">延遲</string>
-    <string name="stun_nat_mapping">NAT 映射</string>
-    <string name="stun_nat_filtering">NAT 過濾</string>
-    <string name="stun_nat_type_detection">NAT 類型偵測</string>
-    <string name="stun_nat_not_supported">伺服器不支援</string>
-
-    <!-- Shared Report -->
-    <string name="report_empty">空</string>
-    <string name="report_section_reports">報告</string>
-    <string name="report_section_files">檔案</string>
-    <string name="report_delete_all">全部刪除</string>
-    <string name="report_delete">刪除</string>
-    <string name="report_share">分享</string>
-    <string name="report_share_with_config">附帶配置分享</string>
-    <string name="report_metadata">元數據</string>
-    <string name="report_configuration">配置</string>
-    <string name="report_origin_local">本地</string>
-    <string name="service_not_started">服務未啟動</string>
-    <string name="service_reload_required">需要重新載入服務以套用變更</string>
-    <string name="service_restart_required">需要重新啟動服務以套用變更</string>
-
-    <!-- Crash Report -->
-    <string name="crash_report">當機報告</string>
-    <string name="crash_report_go_log">Go Crash Log</string>
-    <string name="crash_report_jvm_log">JVM Crash Log</string>
-    <string name="crash_report_description">當發生當機時，您將會收到報告。</string>
-
-    <!-- OOM Report -->
-    <string name="oom_report">記憶體不足報告</string>
-    <string name="oom_report_description">啟用記憶體限制後，當服務記憶體超出限制時，您將會收到報告。您也可以手動觸發收集報告。</string>
-    <string name="oom_report_fetch">取得記憶體報告</string>
-    <string name="oom_report_enable_memory_limit">啟用記憶體限制</string>
-    <string name="oom_report_enable_memory_limit_description">為服務提供軟記憶體限制。服務將執行多個程序以嘗試保持在此記憶體限制範圍內。</string>
-    <string name="oom_report_memory_limit">記憶體限制</string>
-    <string name="oom_report_kill_connections">終止連線</string>
-    <string name="oom_report_kill_connections_description">當服務記憶體超出限制時，終止所有連線以釋放記憶體。</string>
-
-    <!-- Xposed Module -->
-    <string name="xposed_description">sing-box 的特權強化</string>
-    <!-- Privileged Enhancement -->
-    <string name="privilege_settings">特權強化</string>
-    <string name="privilege_module_title">特權模組</string>
-    <string name="privilege_settings_hide_title">隱藏設定</string>
-    <string name="privilege_settings_hide_description">為已選取的應用程式啟用 VPN 偵測防護</string>
-    <string name="privilege_settings_hide_manage">管理</string>
-    <string name="privilege_settings_hide_test">執行測試</string>
-    <string name="privilege_settings_hide_test_result">測試結果</string>
-    <string name="privilege_settings_hide_test_running">正在執行檢測測試…</string>
-    <string name="privilege_settings_hide_test_not_detected">未檢測到</string>
-    <string name="privilege_settings_interface_rename_title">介面重新命名</string>
-    <string name="privilege_settings_interface_prefix">介面前綴</string>
-    <string name="privilege_settings_vpn_detection_title">VPN 檢測</string>
-    <string name="privilege_settings_view_logs">檢視日誌</string>
-    <string name="privilege_settings_export_debug">匯出除錯資訊</string>
-    <string name="privilege_settings_hook_logs_empty">暫無日誌</string>
-    <string name="privilege_settings_export_debug_complete">匯出完成</string>
-    <string name="privilege_settings_export_debug_message">此檔案包含隱私資訊，不應公開分享。大小：%s</string>
-    <string name="privilege_settings_export_debug_failed">匯出除錯資訊失敗：%s</string>
-    <string name="privilege_settings_risky_app_title">警告</string>
-    <string name="privilege_settings_risky_vpn_message_single">此應用程式是 VPN 應用程式，抵抗 VPN 檢測可能造成問題：%1$s</string>
-    <string name="privilege_settings_risky_vpn_message_multi">這些應用程式是 VPN 應用程式，抵抗 VPN 檢測可能造成問題：%1$s</string>
-    <string name="privilege_settings_risky_management_message_single">此應用程式具有網路管理權限，抵抗 VPN 檢測可能造成問題：%1$s</string>
-    <string name="privilege_settings_risky_management_message_multi">這些應用程式具有網路管理權限，抵抗 VPN 檢測可能造成問題：%1$s</string>
-    <string name="privilege_module_restart_action">重新啟動</string>
-    <string name="privilege_module_restart_failed">請求重啟失敗：%1$s</string>
-    <string name="privilege_module_restart_notification_title">需要重啟</string>
-    <string name="privilege_module_restart_notification_message">LSPosed 模組已更新，請重啟以套用變更。</string>
-    <string name="privilege_module_restart_channel">LSPosed 模組</string>
-    <string name="lsposed_module_activated">LSPosed 模組已啟用</string>
-    <string name="lsposed_module_pending_update">LSPosed 模組待更新</string>
-    <string name="lsposed_module_pending_downgrade">LSPosed 模組待降級</string>
-    <string name="lsposed_module_not_activated">LSPosed 模組未啟用</string>
+    <string name="no_proxies_found">此連結不包含任何代理</string>
+    <!-- plugin -->
+    <string name="plugin">外掛程式</string>
+    <string name="plugin_configure">設定…</string>
+    <string name="plugin_disabled">已停用</string>
+    <string name="plugin_unknown">未知外掛程式 %s</string>
+    <string name="plugin_untrusted">警告：此外掛程式並非來自可靠的可信來源。</string>
+    <string name="plugin_auto_connect_unlock_only">此外掛程式可能不支援自動連線</string>
+    <string name="proxy_cat">伺服器設定</string>
+    <string name="unsaved_changes_prompt">要儲存變更嗎？</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
+    <string name="apply">套用</string>
+    <string name="license">授權條款</string>
+    <string name="document">文件</string>
+    <string name="early_data_header_name">前置資料標頭</string>
+    <string name="certificates">憑證</string>
+    <string name="alpn">應用層通訊協定協商</string>
+    <string name="grpc_service_name">gRPC 服務名稱</string>
+    <string name="http_path">HTTP 路徑</string>
+    <string name="http_host">HTTP 主機</string>
+    <string name="ws_path">WebSocket 路徑</string>
+    <string name="ws_host">WebSocket 主機</string>
+    <string name="security">傳輸層安全性協定</string>
+    <string name="key_opt">金鑰（選用）</string>
+    <string name="username">使用者名稱</string>
+    <string name="connection_test_url">連線測試 URL</string>
+    <string name="transproxy_mode">透明代理模式</string>
+    <string name="require_transproxy">啟用透明代理傳入伺服器</string>
+    <string name="dns_hosts">網域重寫</string>
+    <string name="dns_routing_message">使用在路由中被略過的直連 DNS 解析網域。請注意潛在的 DNS 洩漏</string>
+    <string name="enable_dns_routing">啟用 DNS 路由</string>
+    <string name="direct_dns">直連 DNS</string>
+    <string name="remote_dns">遠端 DNS</string>
+    <string name="connection_test_available_http">成功：HTTP 握手花費 %d 毫秒</string>
+    <string name="allow_insecure_sum">停用憑證檢查。當啟用時，此設定檔將和純文字同等安全</string>
+    <string name="allow_insecure">允許不安全的連線</string>
+    <string name="security_settings">安全設定</string>
+    <string name="show_direct_speed_sum">在通知中一併顯示未被代理的流量速度</string>
+    <string name="show_direct_speed">顯示直連速度</string>
+    <string name="show_stop_sum">如果您不想使用快速設定圖塊進行切換</string>
+    <string name="show_stop">顯示停止按鈕</string>
+    <string name="cag_misc">其他設定</string>
+    <string name="port_transproxy">透明代理連接埠</string>
+    <string name="group_duplicate">重複：
+\n%s</string>
+    <string name="group_diff">差異（%s）</string>
+    <string name="tile_title">切換器</string>
+    <string name="group_default">未分組</string>
+    <string name="version_x">版本 (%s)</string>
+    <string name="extra_headers">額外標頭</string>
+    <string name="config_type">設定類型</string>
+    <string name="theme">主題</string>
+    <string name="edit_config">編輯設定</string>
+    <string name="ipv6">IPv6 路由</string>
+    <string name="prefer">優先</string>
+    <string name="only">僅</string>
+    <string name="route_add">建立路由規則</string>
+    <string name="delete_route_prompt">您真的希望移除此路由規則嗎？</string>
+    <string name="route_name">路由名稱</string>
+    <string name="route_proxy">代理</string>
+    <string name="route_bypass">繞過</string>
+    <string name="route_block">封鎖</string>
+    <string name="route_profile">選取設定檔…</string>
+    <string name="empty_route">空白路由規則</string>
+    <string name="empty_route_notice">在儲存前設定一些規則</string>
+    <string name="route_bypass_domain">%s 網域規則</string>
+    <string name="route_bypass_ip">%s IP 規則</string>
+    <string name="route_reset">重設</string>
+    <string name="route_manage_assets">管理路由資源</string>
+    <string name="route_assets">資源</string>
+    <string name="route_rules_provider">規則資源提供者</string>
+    <string name="route_rules_official">官方</string>
+    <string name="route_asset_status">本地版本：%s</string>
+    <string name="route_asset_no_update">無更新</string>
+    <string name="route_asset_updated">已更新</string>
+    <string name="route_not_asset">非資源檔案：預期副檔名為 .db，但 %s</string>
+    <string name="route_opt_bypass_lan">略過區域網路位址</string>
+    <string name="route_opt_block_ads">封鎖廣告</string>
+    <string name="domain_strategy">網域解析策略</string>
+    <string name="traffic_sniffing">啟用流量嗅探</string>
+    <string name="enable_mux">啟用多工器</string>
+    <string name="mux_concurrency">多工器同時連線數目</string>
+    <string name="tcp_keep_alive_interval">TCP 保持連線傳送間隔</string>
+    <string name="service_failed">失敗：</string>
+    <string name="select_profile">選取設定檔</string>
+    <string name="proxy_chain">代理鏈結</string>
+    <string name="custom_config">客製化設定檔</string>
+    <string name="balancer">負載平衡器</string>
+    <string name="balancer_settings">負載平衡器設定</string>
+    <string name="balancer_type">類型</string>
+    <string name="balancer_strategy">策略</string>
+    <string name="chain_settings">鏈結設定</string>
+    <string name="config_settings">設定檔設定</string>
+    <string name="circular_reference">循環參考</string>
+    <string name="circular_reference_sum">路由中不能包含自己。</string>
+    <string name="clear_profiles">清除</string>
+    <string name="action_export">匯出</string>
+    <string name="insecure">不安全</string>
+    <string name="deprecated">已被取代</string>
+    <string name="no_proxies_found_in_subscription">未在此訂閱中找到代理</string>
+    <string name="no_proxies_found_in_file">未在此檔案中找到代理</string>
+    <string name="no_proxies_found_in_clipboard">未在剪貼簿中找到代理</string>
+    <string name="deduplication">重複資料刪除</string>
+    <string name="donate">捐贈</string>
+    <string name="ignore_battery_optimizations">忽略電池效能最佳化</string>
+    <string name="ignore_battery_optimizations_sum">移除一些限制</string>
+    <string name="ss_cat">Shadowsocks 設定</string>
+    <string name="need_reload">重新載入代理服務以套用修改</string>
+    <string name="route_warn">請在新增客製化規則前閱讀文件，否則您可能會無法連線至網際網路。</string>
+    <string name="lines">%d 行</string>
+    <string name="night_mode">夜間模式</string>
+    <string name="follow_system">跟隨系統</string>
+    <string name="enable">啟用</string>
+    <string name="disable">停用</string>
+    <string name="auto">自動</string>
+    <string name="enable_log">啟用記錄檔</string>
+    <string name="enable_log_sum">用於除錯用途</string>
+    <string name="list">清單</string>
+    <string name="random">隨機</string>
+    <string name="api_port">API 連接埠</string>
+    <string name="probe_interval">負載平衡器觀測間隔</string>
+    <string name="standard">標準</string>
+    <string name="unavailable">無法使用</string>
+    <string name="always_show_address">始終顯示位址</string>
+    <string name="always_show_address_sum">使用在設定檔卡片中顯示伺服器位址</string>
+    <string name="clear_traffic_statistics">清除流量統計資料</string>
+    <string name="connection_test">連線測試</string>
+    <string name="connection_test_tcp_ping_unavailable">TCPing 無法使用</string>
+    <string name="connection_test_clear_results">清除測試結果</string>
+    <string name="connection_test_icmp_ping_unavailable">ICMPing 無法使用</string>
+    <string name="connection_test_domain_not_found">網域不存在</string>
+    <string name="connection_test_refused">連線被拒</string>
+    <string name="donate_info">貓貓很可愛 請給貓貓錢</string>
+    <string name="connection_test_unreachable">無法連線</string>
+    <string name="connection_test_timeout">逾時</string>
+    <string name="append_http_proxy">為 VPN 附加 HTTP 代理</string>
+    <string name="append_http_proxy_sum">HTTP 代理將直接被支援的瀏覽器/應用程式使用，而無需經過虛擬網路卡（Android 10+）</string>
+    <string name="trojan_provider">Trojan 提供程式</string>
+    <string name="protocol_settings">協議設定</string>
+    <string name="group_basic">基本</string>
+    <string name="group_settings">群組設定</string>
+    <string name="subscription">訂閱</string>
+    <string name="subscription_settings">訂閱設定</string>
+    <string name="group_type">群組類型</string>
+    <string name="subscription_type">訂閱類型</string>
+    <string name="delete_group_prompt">您真的希望移除此群組嗎？</string>
+    <string name="force_resolve">強制解析</string>
+    <string name="force_resolve_sum">在更新時將所有網域解析為 IP。主機名和伺服器名稱指示將在可能時被自動附加</string>
+    <string name="deduplication_sum">在更新時移除重複的設定檔</string>
+    <string name="raw">原始</string>
+    <string name="update_settings">更新設定</string>
+    <string name="auto_update">自動更新</string>
+    <string name="auto_update_delay">自動更新間隔（分鐘）</string>
+    <string name="update_when_connected_only">僅在已連線時更新</string>
+    <string name="update_when_connected_only_sum">防止 IP 位址洩漏</string>
+    <string name="subscription_user_agent">使用者代理</string>
+    <string name="confirm">確認</string>
+    <string name="missing_plugin">遺失外掛程式</string>
+    <string name="profile_requiring_plugin">設定檔 %s 需要外掛程式 %s，但其未被安裝。</string>
+    <string name="action_learn_more">深入瞭解</string>
+    <string name="action_download">下載</string>
+    <string name="install_from_play_store">從 Play 商店安裝</string>
+    <string name="install_from_fdroid">從 F-Droid 安裝</string>
+    <string name="download">下載</string>
+    <string name="ooc_subscription_token_invalid">無效的 OOCv1 權杖</string>
+    <string name="update_subscription_warning">代理尚未連線，您真的希望繼續更新嗎？</string>
+    <string name="ooc_warning">警告</string>
+    <string name="ooc_missing_protocol">此訂閱需支援 %s 通訊協定，但其未被安裝，不支援的設定檔將被忽略。</string>
+    <string name="service_subscription">訂閱更新服務</string>
+    <string name="subscription_update">訂閱更新</string>
+    <string name="subscription_update_message">正在更新 %s …</string>
+    <string name="group_filter">篩選</string>
+    <string name="subscription_used">已用 %s</string>
+    <string name="subscription_traffic">已用 %s / 剩餘 %s</string>
+    <string name="subscription_import">匯入訂閱</string>
+    <string name="subscription_import_message">您確定要匯入訂閱 %s 嗎？如果訂閱的來源不可信，您的 IP 和行為將被洩漏。</string>
+    <string name="profile_import">匯入設定檔</string>
+    <string name="profile_import_message">您確定要匯入設定檔 %s 嗎？</string>
+    <string name="clear_profiles_message">您確定要清除此群組嗎？</string>
+    <string name="apps">應用程式</string>
+    <string name="select_apps">選擇應用程式</string>
+    <string name="apps_message">%d 個應用程式</string>
+    <string name="file_manager_missing">您的裝置缺少 Android 標準檔案選擇器, 請安裝一個, 如 Material Files.</string>
+    <string name="menu_traffic">流量</string>
+    <string name="shadowsocks_plugin_v2ray">V2Ray (Shadowsocks Android 外掛程式)</string>
+    <string name="shadowsocks_plugin_simple_obfs">Simple Obfs (Shadowsocks Android 外掛程式)</string>
+    <string name="plugin_exists_but_on_shit_system">設定檔 %s 需要外掛程式 %s，但是您的專有設備提供商（通常也是監視資本主義巨頭和惡意軟體製造商）篡改了你的 Android 系統，使此外掛程式不可用。</string>
+    <string name="ssh_private_key_passphrase">私密金鑰複雜密碼</string>
+    <string name="ssh_private_key">私密金鑰</string>
+    <string name="ssh_public_key">公開金鑰</string>
+    <string name="ssh_auth_type_none">無</string>
+    <string name="no_statistics">暫無統計資料</string>
+    <string name="route_need_vpn">路由規則`%s` 需要 VPN 模式以生效，因此被忽略。</string>
+    <string name="route_for">%s 的規則</string>
+    <string name="app_no_launcher">此應用程式沒有介面。</string>
+    <string name="copy_failed">複製失敗。</string>
+    <string name="copy_success">成功複製！</string>
+    <string name="create_rule">建立規則</string>
+    <string name="open_market">開啟應用商店</string>
+    <string name="open_settings">開啟設定</string>
+    <string name="open_app">開啟應用程式</string>
+    <string name="copy_package_name">複製應用程式套件名稱</string>
+    <string name="copy_label">複製名稱</string>
+    <string name="udp_connections">%d 個 UDP 連線</string>
+    <string name="tcp_connections">%d 個 TCP 連線</string>
+    <string name="group_order_by_delay">以延遲</string>
+    <string name="group_order_by_name">以名稱</string>
+    <string name="group_order_origin">原始</string>
+    <string name="group_order">順序</string>
+    <string name="hysteria_disable_mtu_discovery">停用路徑 MTU 探索</string>
+    <string name="hysteria_connection_receive_window">QUIC 連線接收視窗</string>
+    <string name="hysteria_stream_receive_window">QUIC 串流接收視窗</string>
+    <string name="experimental_settings">實驗性</string>
+    <string name="hysteria_download_mbps">最大下載速度（Mbps）</string>
+    <string name="hysteria_upload_mbps">最大上傳速度（Mbps）</string>
+    <string name="hysteria_auth_payload">認證密碼</string>
+    <string name="hysteria_auth_type">認證類型</string>
+    <string name="hysteria_obfs">混淆密碼</string>
+    <string name="menu_tools">工具</string>
+    <string name="translate_platform">翻譯平台</string>
+    <string name="menu_log">記錄檔</string>
+    <string name="profile_traffic_statistics_summary">當停用時，使用的流量將不會被統計</string>
+    <string name="app_statistics_disabled">應用程式流量統計資料被停用</string>
+    <string name="tun_implementation">TUN 實作</string>
+    <string name="destination_override">覆寫目的地位址</string>
+    <string name="resolve_destination">解析目的地位址</string>
+    <string name="clear_logcat">清除記錄檔</string>
+    <string name="wireguard_local_address">本機位址</string>
+    <string name="wireguard_public_key">節點公開金鑰</string>
+    <string name="wireguard_psk">節點預先共用金鑰</string>
+    <string name="warp_license">CloudFlare Warp 是一個免費的 WireGuard VPN 提供者。使用此服務表示您同意其服務條款。</string>
+    <string name="warp_generate">產生設定檔</string>
+    <string name="generating">正在產生…</string>
+    <string name="pcap_notice">Pcap 檔案將被儲存至 %s</string>
+    <string name="profile_traffic_statistics">設定檔流量統計資料</string>
+    <string name="resolve_destination_summary">如果目的地位址是一個網域，則基於 IPv6 策略傳出。</string>
+    <string name="destination_override_summary">使用被偵測到的網域複寫目的地位址，而不是僅用於路由</string>
+    <string name="route_opt_block_analysis">封鎖分析</string>
+    <string name="route_play_store">%s Google Play商店規則</string>
+    <string name="naive_insecure_concurrency">不安全並發</string>
+    <string name="stun_test">NAT 行為尋找</string>
+    <string name="naive_insecure_concurrency_summary">使用N個並發的隧道能使網路條件較差时更加可用。但數量越多，越易被偵測，安全性越低。由於本項目致力於面對流量分析的安全性，以不安全的方式使用違背了其初忠。
+\n
+\n如一定要使用，請先嘗試 N=2，觀察其是否解決了您的問題。強烈反對於此使用多於4個隧道。</string>
+    <string name="stun_attest_loading">這可能需要數分鐘…</string>
+    <string name="stun_test_summary">使用 STUN 確定用戶端的 NAT 映射行為和 RFC 5780 中定義的 NAT 篩選行為。</string>
+    <string name="start">開始</string>
+    <string name="backup">備份</string>
+    <string name="backup_rules">路由規則</string>
+    <string name="invalid_backup_file">無效的備份檔</string>
+    <string name="tools_network">網路</string>
+    <string name="backup_settings">設定</string>
+    <string name="backup_import">匯入</string>
+    <string name="backup_import_summary">匯入將覆蓋現有資料。</string>
+    <string name="backup_importing">正在匯入…</string>
+    <string name="backup_groups_and_configurations">分組和設定檔</string>
+    <string name="backup_summary">如果路由規則不與設定檔一起備份，則自訂出站將丟失。</string>
+    <string name="backup_not_file">不是一個備份檔案，預計 .json，但 %s</string>
+    <string name="packet_encoding">封包編碼</string>
 </resources>
