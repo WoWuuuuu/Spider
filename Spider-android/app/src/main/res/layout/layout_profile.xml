@@ -68,6 +68,7 @@
                     android:contentDescription="@string/edit"
                     android:focusable="true"
                     android:padding="12dp"
+                    android:visibility="gone"
                     app:srcCompat="@drawable/ic_image_edit" />
 
                 <LinearLayout
@@ -78,6 +79,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/share"
                     android:focusable="true"
+                    android:visibility="gone"
                     android:nextFocusLeft="@+id/container">
 
                     <LinearLayout
@@ -106,7 +108,6 @@
                     android:padding="12dp"
                     android:visibility="gone"
                     app:srcCompat="@drawable/ic_action_delete" />
-
             </LinearLayout>
 
             <LinearLayout
@@ -173,6 +174,56 @@
             </LinearLayout>
 
         </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Overlay layout for long-press actions -->
+    <LinearLayout
+        android:id="@+id/actions_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/overlay_blur_color"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/overlay_edit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/edit"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="16dp"
+            app:srcCompat="@drawable/ic_image_edit"
+            app:tint="?android:attr/textColorPrimary" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/overlay_share"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/share"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="16dp"
+            app:srcCompat="@drawable/ic_social_share"
+            app:tint="?android:attr/textColorPrimary" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/overlay_delete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/delete"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="16dp"
+            app:srcCompat="@drawable/ic_action_delete"
+            app:tint="?android:attr/textColorPrimary" />
 
     </LinearLayout>
 

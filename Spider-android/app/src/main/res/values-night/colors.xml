@@ -2,4 +2,5 @@
 <resources>
     <color name="fab_color_progress">@color/material_light_white</color>
     <color name="preference_simple_menu_background">#303030</color>
+    <color name="overlay_blur_color">#E6121212</color>
 </resources>

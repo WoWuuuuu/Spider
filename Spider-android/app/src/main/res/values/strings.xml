@@ -579,4 +579,14 @@
     <string name="minimize">Minimize</string>
     <string name="app_list_permission_denied">Unable to read installed apps.\nThis is usually because the system has restricted app read permissions.\nPlease grant permissions in the system settings.</string>
     <string name="open_app_settings">Open System Settings</string>
+
+    <!-- New settings categories & direct links -->
+    <string name="routing_rules">Routing Rules</string>
+    <string name="backup_and_tools">Backup &amp; Tools</string>
+    <string name="system_logs">System Logs</string>
+    <string name="settings_group_routing">Routing &amp; Rules</string>
+    <string name="settings_group_debug">Debug &amp; Tools</string>
+    <string name="settings_group_connection">Connection &amp; Inbound</string>
+    <string name="settings_group_general">General &amp; Appearance</string>
+    <string name="settings_group_advanced">Advanced Options</string>
 </resources>

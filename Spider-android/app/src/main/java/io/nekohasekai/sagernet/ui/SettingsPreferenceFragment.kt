@@ -41,6 +41,46 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         DataStore.initGlobal()
         addPreferencesFromResource(R.xml.global_preferences)
 
+        findPreference<Preference>("routingRulesLink")?.setOnPreferenceClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_holder, RouteFragment())
+                .addToBackStack(null)
+                .commit()
+            true
+        }
+
+        findPreference<Preference>("backupAndToolsLink")?.setOnPreferenceClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_holder, ToolsFragment())
+                .addToBackStack(null)
+                .commit()
+            true
+        }
+
+        findPreference<Preference>("systemLogsLink")?.setOnPreferenceClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_holder, LogcatFragment())
+                .addToBackStack(null)
+                .commit()
+            true
+        }
+
+        findPreference<Preference>("clashDashboardLink")?.setOnPreferenceClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_holder, WebviewFragment())
+                .addToBackStack(null)
+                .commit()
+            true
+        }
+
+        findPreference<Preference>("aboutLink")?.setOnPreferenceClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_holder, AboutFragment())
+                .addToBackStack(null)
+                .commit()
+            true
+        }
+
         val appTheme = findPreference<ColorPickerPreference>(Key.APP_THEME)!!
         appTheme.setOnPreferenceChangeListener { _, newTheme ->
             if (DataStore.serviceState.started) {
@@ -142,7 +182,11 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         val resolveDestination = findPreference<SwitchPreference>(Key.RESOLVE_DESTINATION)!!
         val acquireWakeLock = findPreference<SwitchPreference>(Key.ACQUIRE_WAKE_LOCK)!!
         val enableClashAPI = findPreference<SwitchPreference>(Key.ENABLE_CLASH_API)!!
+        val clashDashboard = findPreference<Preference>("clashDashboardLink")
+        clashDashboard?.isVisible = DataStore.enableClashAPI
+
         enableClashAPI.setOnPreferenceChangeListener { _, newValue ->
+            clashDashboard?.isVisible = newValue as Boolean
             (activity as MainActivity?)?.refreshNavMenu(newValue as Boolean)
             needReload()
             true

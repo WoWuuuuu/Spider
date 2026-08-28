@@ -18,9 +18,16 @@ open class ToolbarFragment : Fragment {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         toolbar = view.findViewById(R.id.toolbar)
-        toolbar.setNavigationIcon(R.drawable.ic_navigation_menu)
-        toolbar.setNavigationOnClickListener {
-            (activity as MainActivity).binding.drawerLayout.openDrawer(GravityCompat.START)
+        if (parentFragmentManager.backStackEntryCount > 0) {
+            toolbar.setNavigationIcon(R.drawable.baseline_arrow_back_24)
+            toolbar.setNavigationOnClickListener {
+                parentFragmentManager.popBackStack()
+            }
+        } else {
+            toolbar.setNavigationIcon(R.drawable.ic_navigation_menu)
+            toolbar.setNavigationOnClickListener {
+                (activity as MainActivity).binding.drawerLayout.openDrawer(androidx.core.view.GravityCompat.START)
+            }
         }
     }
 

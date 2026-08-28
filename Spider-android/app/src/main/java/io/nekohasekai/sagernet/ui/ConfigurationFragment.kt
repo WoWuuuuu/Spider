@@ -88,6 +88,8 @@ import io.nekohasekai.sagernet.ui.profile.SocksSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.TrojanGoSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.TrojanSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.TuicSettingsActivity
+import moe.matsuri.nb4a.utils.Util
+import moe.matsuri.nb4a.utils.toBytesString
 import io.nekohasekai.sagernet.ui.profile.VMessSettingsActivity
 import io.nekohasekai.sagernet.ui.profile.WireGuardSettingsActivity
 import io.nekohasekai.sagernet.widget.QRCodeDialog
@@ -133,6 +135,34 @@ class ConfigurationFragment @JvmOverloads constructor(
 
     val alwaysShowAddress by lazy { DataStore.alwaysShowAddress }
 
+    lateinit var selectedExportGroup: ProxyGroup
+
+    val exportProfilesFromHome =
+        registerForActivityResult(ActivityResultContracts.CreateDocument()) { data ->
+            if (data != null) {
+                runOnDefaultDispatcher {
+                    val profiles = SagerDatabase.proxyDao.getByGroup(selectedExportGroup.id)
+                    val links = profiles.joinToString("\n") { it.toStdLink(compact = true) }
+                    try {
+                        requireContext().contentResolver.openOutputStream(
+                            data
+                        )!!.bufferedWriter().use {
+                            it.write(links)
+                        }
+                        onMainDispatcher {
+                            (requireActivity() as MainActivity).snackbar(getString(R.string.action_export_msg)).show()
+                        }
+                    } catch (e: Exception) {
+                        Logs.w(e)
+                        onMainDispatcher {
+                            (requireActivity() as MainActivity).snackbar(e.readableMessage).show()
+                        }
+                    }
+                }
+            }
+        }
+
+
     fun getCurrentGroupFragment(): GroupFragment? {
         return try {
             childFragmentManager.findFragmentByTag("f" + DataStore.selectedGroup) as GroupFragment?
@@ -176,6 +206,40 @@ class ConfigurationFragment @JvmOverloads constructor(
         super.onViewCreated(view, savedInstanceState)
 
         if (!select) {
+            toolbar.navigationIcon = null
+            toolbar.title = ""
+            val context = toolbar.context
+            val spiderText = TextView(context).apply {
+                text = "Spider"
+                textSize = 22f
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                setTextColor(context.getColorAttr(android.R.attr.textColorPrimary))
+                setPadding(dp2px(16), 0, dp2px(16), 0)
+                androidx.core.view.ViewCompat.setTransitionName(this, "settings_container")
+                setOnClickListener {
+                    val settingsFragment = SettingsFragment().apply {
+                        sharedElementEnterTransition = com.google.android.material.transition.MaterialContainerTransform().apply {
+                            drawingViewId = R.id.fragment_holder
+                            duration = 300L
+                            scrimColor = Color.TRANSPARENT
+                        }
+                        sharedElementReturnTransition = com.google.android.material.transition.MaterialContainerTransform().apply {
+                            drawingViewId = R.id.fragment_holder
+                            duration = 300L
+                            scrimColor = Color.TRANSPARENT
+                        }
+                    }
+
+                    parentFragmentManager.beginTransaction()
+                        .setReorderingAllowed(true)
+                        .addSharedElement(this, "settings_container")
+                        .replace(R.id.fragment_holder, settingsFragment)
+                        .addToBackStack("settings")
+                        .commit()
+                }
+            }
+            toolbar.addView(spiderText)
+
             toolbar.inflateMenu(R.menu.add_profile_menu)
             toolbar.setOnMenuItemClickListener(this)
         } else {
@@ -211,7 +275,10 @@ class ConfigurationFragment @JvmOverloads constructor(
             if (adapter.groupList.size > position) {
                 tab.text = adapter.groupList[position].displayName()
             }
-            tab.view.setOnLongClickListener { // clear toast
+            tab.view.setOnLongClickListener {
+                if (adapter.groupList.size > position) {
+                    showGroupManagementDialog(adapter.groupList[position])
+                }
                 true
             }
         }.attach()
@@ -443,6 +510,26 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             R.id.action_new_chain -> {
                 startActivity(Intent(requireActivity(), ChainSettingsActivity::class.java))
+            }
+
+            R.id.action_new_group -> {
+                startActivity(Intent(context, GroupSettingsActivity::class.java))
+            }
+
+            R.id.action_update_all -> {
+                MaterialAlertDialogBuilder(requireContext()).setTitle(R.string.confirm)
+                    .setMessage(R.string.update_all_subscription)
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        runOnDefaultDispatcher {
+                            SagerDatabase.groupDao.allGroups()
+                                .filter { it.type == GroupType.SUBSCRIPTION }
+                                .forEach {
+                                    GroupUpdater.startUpdate(it, true)
+                                }
+                        }
+                    }
+                    .setNegativeButton(R.string.no, null)
+                    .show()
             }
 
             R.id.action_update_subscription -> {
@@ -1480,16 +1567,16 @@ class ConfigurationFragment @JvmOverloads constructor(
 
             val trafficText: TextView = view.findViewById(R.id.traffic_text)
             val selectedView: LinearLayout = view.findViewById(R.id.selected_view)
-            val editButton: ImageView = view.findViewById(R.id.edit)
-            val shareLayout: LinearLayout = view.findViewById(R.id.share)
-            val shareLayer: LinearLayout = view.findViewById(R.id.share_layer)
-            val shareButton: ImageView = view.findViewById(R.id.shareIcon)
-            val removeButton: ImageView = view.findViewById(R.id.remove)
+            val actionsOverlay: LinearLayout = view.findViewById(R.id.actions_overlay)
+            val overlayEdit: ImageView = view.findViewById(R.id.overlay_edit)
+            val overlayShare: ImageView = view.findViewById(R.id.overlay_share)
+            val overlayDelete: ImageView = view.findViewById(R.id.overlay_delete)
 
             fun bind(proxyEntity: ProxyEntity, trafficData: TrafficData? = null) {
                 val pf = parentFragment as? ConfigurationFragment ?: return
 
                 entity = proxyEntity
+                actionsOverlay.visibility = View.GONE
 
                 if (select) {
                     view.setOnClickListener {
@@ -1591,7 +1678,84 @@ class ConfigurationFragment @JvmOverloads constructor(
                     profileStatus.setOnClickListener(null)
                 }
 
-                editButton.setOnClickListener {
+                runOnDefaultDispatcher {
+                    val selected = (selectedItem?.id ?: DataStore.selectedProxy) == proxyEntity.id
+                    val started =
+                        selected && DataStore.serviceState.started && DataStore.currentProfile == proxyEntity.id
+                    onMainDispatcher {
+                        selectedView.visibility = if (selected) View.VISIBLE else View.INVISIBLE
+
+                        overlayEdit.isEnabled = !started
+                        overlayDelete.isEnabled = !started
+
+                        val hideShare = select || proxyEntity.type == ProxyEntity.TYPE_CHAIN || (proxyEntity.nekoBean != null)
+                        overlayShare.visibility = if (hideShare) View.GONE else View.VISIBLE
+                    }
+                }
+
+                if (!select) {
+                    view.setOnLongClickListener {
+                        // 1. Card micro-scaling animation
+                        view.animate()
+                            .scaleX(0.97f)
+                            .scaleY(0.97f)
+                            .setDuration(200L)
+                            .setInterpolator(android.view.animation.DecelerateInterpolator())
+                            .start()
+
+                        // 2. Reset buttons scale
+                        overlayEdit.scaleX = 0.5f
+                        overlayEdit.scaleY = 0.5f
+                        overlayShare.scaleX = 0.5f
+                        overlayShare.scaleY = 0.5f
+                        overlayDelete.scaleX = 0.5f
+                        overlayDelete.scaleY = 0.5f
+
+                        // 3. Staggered overshoot animation for buttons
+                        overlayEdit.animate().scaleX(1.0f).scaleY(1.0f).setDuration(250L)
+                            .setInterpolator(android.view.animation.OvershootInterpolator()).setStartDelay(0).start()
+                        overlayShare.animate().scaleX(1.0f).scaleY(1.0f).setDuration(250L)
+                            .setInterpolator(android.view.animation.OvershootInterpolator()).setStartDelay(50).start()
+                        overlayDelete.animate().scaleX(1.0f).scaleY(1.0f).setDuration(250L)
+                            .setInterpolator(android.view.animation.OvershootInterpolator()).setStartDelay(100).start()
+
+                        actionsOverlay.visibility = View.VISIBLE
+                        actionsOverlay.alpha = 0f
+                        actionsOverlay.animate()
+                            .alpha(1f)
+                            .setDuration(250L)
+                            .setListener(null)
+                            .start()
+                        true
+                    }
+                } else {
+                    view.setOnLongClickListener(null)
+                }
+
+                fun dismissOverlay() {
+                    // Restore card scale
+                    view.animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .setDuration(200L)
+                        .setInterpolator(android.view.animation.DecelerateInterpolator())
+                        .start()
+
+                    actionsOverlay.animate()
+                        .alpha(0f)
+                        .setDuration(250L)
+                        .withEndAction {
+                            actionsOverlay.visibility = View.GONE
+                        }
+                        .start()
+                }
+
+                actionsOverlay.setOnClickListener {
+                    dismissOverlay()
+                }
+
+                overlayEdit.setOnClickListener {
+                    dismissOverlay()
                     it.context.startActivity(
                         proxyEntity.settingIntent(
                             it.context, proxyGroup.type == GroupType.SUBSCRIPTION
@@ -1599,73 +1763,48 @@ class ConfigurationFragment @JvmOverloads constructor(
                     )
                 }
 
-                removeButton.setOnClickListener {
-                    adapter?.let {
-                        val index = it.configurationIdList.indexOf(proxyEntity.id)
-                        it.remove(index)
-                        undoManager.remove(index to proxyEntity)
-                    }
+                overlayShare.setOnClickListener {
+                    dismissOverlay()
+                    showShare(it)
                 }
 
-                val selectOrChain = select || proxyEntity.type == ProxyEntity.TYPE_CHAIN
-                shareLayout.isGone = selectOrChain
-                editButton.isGone = select
-                removeButton.isGone = select
-
-                proxyEntity.nekoBean?.apply {
-                    shareLayout.isGone = true
-                }
-
-                runOnDefaultDispatcher {
-                    val selected = (selectedItem?.id ?: DataStore.selectedProxy) == proxyEntity.id
-                    val started =
-                        selected && DataStore.serviceState.started && DataStore.currentProfile == proxyEntity.id
-                    onMainDispatcher {
-                        editButton.isEnabled = !started
-                        removeButton.isEnabled = !started
-                        selectedView.visibility = if (selected) View.VISIBLE else View.INVISIBLE
-                    }
-
-                    fun showShare(anchor: View) {
-                        val popup = PopupMenu(requireContext(), anchor)
-                        popup.menuInflater.inflate(R.menu.profile_share_menu, popup.menu)
-
-                        when {
-                            !proxyEntity.haveStandardLink() -> {
-                                popup.menu.findItem(R.id.action_group_qr).subMenu?.removeItem(R.id.action_standard_qr)
-                                popup.menu.findItem(R.id.action_group_clipboard).subMenu?.removeItem(
-                                    R.id.action_standard_clipboard
-                                )
-                            }
-
-                            !proxyEntity.haveLink() -> {
-                                popup.menu.removeItem(R.id.action_group_qr)
-                                popup.menu.removeItem(R.id.action_group_clipboard)
-                            }
-                        }
-
-                        if (proxyEntity.nekoBean != null) {
-                            popup.menu.removeItem(R.id.action_group_configuration)
-                        }
-
-                        popup.setOnMenuItemClickListener(this@ConfigurationHolder)
-                        popup.show()
-                    }
-
-                    if (!(select || proxyEntity.type == ProxyEntity.TYPE_CHAIN)) {
-                        onMainDispatcher {
-                            shareLayer.setBackgroundColor(Color.TRANSPARENT)
-                            shareButton.setImageResource(R.drawable.ic_social_share)
-                            shareButton.setColorFilter(Color.GRAY)
-                            shareButton.isVisible = true
-
-                            shareLayout.setOnClickListener {
-                                showShare(it)
-                            }
+                overlayDelete.setOnClickListener {
+                    dismissOverlay()
+                    adapter?.let { adapter ->
+                        val index = adapter.configurationIdList.indexOf(proxyEntity.id)
+                        if (index != -1) {
+                            adapter.remove(index)
+                            undoManager.remove(index to proxyEntity)
                         }
                     }
                 }
 
+            }
+
+            fun showShare(anchor: View) {
+                val popup = PopupMenu(requireContext(), anchor)
+                popup.menuInflater.inflate(R.menu.profile_share_menu, popup.menu)
+
+                when {
+                    !entity.haveStandardLink() -> {
+                        popup.menu.findItem(R.id.action_group_qr).subMenu?.removeItem(R.id.action_standard_qr)
+                        popup.menu.findItem(R.id.action_group_clipboard).subMenu?.removeItem(
+                            R.id.action_standard_clipboard
+                        )
+                    }
+
+                    !entity.haveLink() -> {
+                        popup.menu.removeItem(R.id.action_group_qr)
+                        popup.menu.removeItem(R.id.action_group_clipboard)
+                    }
+                }
+
+                if (entity.nekoBean != null) {
+                    popup.menu.removeItem(R.id.action_group_configuration)
+                }
+
+                popup.setOnMenuItemClickListener(this@ConfigurationHolder)
+                popup.show()
             }
 
             var currentName = ""
@@ -1733,6 +1872,260 @@ class ConfigurationFragment @JvmOverloads constructor(
                 }
             }
         }
+
+    fun showGroupManagementDialog(group: ProxyGroup) {
+        val context = requireContext()
+        val scrollView = androidx.core.widget.NestedScrollView(context).apply {
+            layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        }
+        val root = LinearLayout(context).apply {
+            orientation = LinearLayout.VERTICAL
+            val padding = dp2px(20)
+            setPadding(padding, padding, padding, padding)
+        }
+        scrollView.addView(root)
+
+        // Title (Group Name)
+        val titleView = TextView(context).apply {
+            text = group.displayName()
+            textSize = 20f
+            setTypeface(null, android.graphics.Typeface.BOLD)
+            setTextColor(context.getColorAttr(android.R.attr.textColorPrimary))
+            setPadding(0, 0, 0, dp2px(12))
+        }
+        root.addView(titleView)
+
+        // Subscription / Count Info
+        val infoView = TextView(context).apply {
+            textSize = 14f
+            setTextColor(context.getColorAttr(android.R.attr.textColorSecondary))
+            setPadding(0, 0, 0, dp2px(16))
+        }
+
+        // Calculate subscription info
+        var infoText = ""
+        val subscription = group.subscription
+        if (subscription != null) {
+            if (subscription.bytesUsed > 0L) {
+                infoText += if (subscription.bytesRemaining > 0L) {
+                    getString(
+                        R.string.subscription_traffic, Formatter.formatFileSize(
+                            context, subscription.bytesUsed
+                        ), Formatter.formatFileSize(
+                            context, subscription.bytesRemaining
+                        )
+                    )
+                } else {
+                    getString(
+                        R.string.subscription_used, Formatter.formatFileSize(
+                            context, subscription.bytesUsed
+                        )
+                    )
+                }
+            } else if (!subscription.subscriptionUserinfo.isNullOrBlank()) {
+                fun get(regex: String): String? {
+                    return regex.toRegex().findAll(subscription.subscriptionUserinfo).mapNotNull {
+                        if (it.groupValues.size > 1) it.groupValues[1] else null
+                    }.firstOrNull()
+                }
+
+                try {
+                    var used: Long = 0
+                    get("upload=([0-9]+)")?.apply { used += toLong() }
+                    get("download=([0-9]+)")?.apply { used += toLong() }
+                    val total = get("total=([0-9]+)")?.toLong() ?: 0
+                    val remain = total - used
+                    if (used > 0 || total > 0) {
+                        infoText += if (remain > 0) {
+                            getString(
+                                R.string.subscription_traffic,
+                                used.toBytesString(),
+                                remain.toBytesString()
+                            )
+                        } else {
+                            getString(R.string.subscription_used, used.toBytesString())
+                        }
+                    }
+                    get("expire=([0-9]+)")?.apply {
+                        if (infoText.isNotEmpty()) infoText += "\n"
+                        infoText += getString(
+                            R.string.subscription_expire,
+                            Util.timeStamp2Text(this.toLong() * 1000)
+                        )
+                    }
+                } catch (_: Exception) {}
+            }
+        }
+
+        if (infoText.isEmpty()) {
+            runOnDefaultDispatcher {
+                val size = SagerDatabase.proxyDao.countByGroup(group.id)
+                onMainDispatcher {
+                    val countText = if (size == 0L) {
+                        getString(R.string.group_status_empty)
+                    } else {
+                        getString(R.string.group_status_proxies, size)
+                    }
+                    infoView.text = countText
+                }
+            }
+        } else {
+            infoView.text = infoText
+        }
+        root.addView(infoView)
+
+        // Divider
+        val divider = View(context).apply {
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp2px(1)).apply {
+                bottomMargin = dp2px(8)
+            }
+            setBackgroundColor(Color.parseColor("#20808080"))
+        }
+        root.addView(divider)
+
+        val dialog = MaterialAlertDialogBuilder(context)
+            .setView(scrollView)
+            .create()
+
+        // Helper to add action item
+        fun addActionItem(title: String, iconRes: Int, onClick: () -> Unit) {
+            val itemView = LinearLayout(context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                val typedValue = android.util.TypedValue()
+                context.theme.resolveAttribute(android.R.attr.selectableItemBackground, typedValue, true)
+                setBackgroundResource(typedValue.resourceId)
+                isClickable = true
+                isFocusable = true
+                setPadding(dp2px(8), dp2px(12), dp2px(8), dp2px(12))
+                setOnClickListener {
+                    dialog.dismiss()
+                    onClick()
+                }
+            }
+
+            val iconView = ImageView(context).apply {
+                setImageResource(iconRes)
+                setColorFilter(context.getColorAttr(android.R.attr.textColorPrimary))
+                layoutParams = LinearLayout.LayoutParams(dp2px(24), dp2px(24)).apply {
+                    marginEnd = dp2px(16)
+                }
+            }
+            itemView.addView(iconView)
+
+            val textView = TextView(context).apply {
+                text = title
+                textSize = 16f
+                setTextColor(context.getColorAttr(android.R.attr.textColorPrimary))
+            }
+            itemView.addView(textView)
+
+            root.addView(itemView)
+        }
+
+        // Add actions
+        if (group.type == GroupType.SUBSCRIPTION) {
+            // Update
+            addActionItem(getString(R.string.group_update), R.drawable.ic_baseline_refresh_24) {
+                runOnLifecycleDispatcher {
+                    GroupUpdater.startUpdate(group, true)
+                }
+            }
+            // Share
+            addActionItem(getString(R.string.share) + getString(R.string.subscription), R.drawable.ic_social_share) {
+                showShareOptions(group)
+            }
+        }
+
+        // Edit Group
+        addActionItem(getString(R.string.group_edit), R.drawable.ic_image_edit) {
+            startActivity(Intent(context, GroupSettingsActivity::class.java).apply {
+                putExtra(GroupSettingsActivity.EXTRA_GROUP_ID, group.id)
+            })
+        }
+
+        // Export
+        addActionItem(getString(R.string.action_export), R.drawable.baseline_save_24) {
+            showExportOptions(group)
+        }
+
+        // Clear
+        addActionItem(getString(R.string.clear_profiles), R.drawable.baseline_delete_sweep_24) {
+            MaterialAlertDialogBuilder(context).setTitle(R.string.confirm)
+                .setMessage(R.string.clear_profiles_message)
+                .setPositiveButton(R.string.yes) { _, _ ->
+                    runOnDefaultDispatcher {
+                        GroupManager.clearGroup(group.id)
+                    }
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+
+        // Delete Group
+        if (!group.ungrouped) {
+            addActionItem(getString(R.string.delete), R.drawable.ic_action_delete) {
+                MaterialAlertDialogBuilder(context).setTitle(R.string.confirm)
+                    .setMessage(R.string.delete_group_prompt)
+                    .setPositiveButton(R.string.yes) { _, _ ->
+                        runOnDefaultDispatcher {
+                            GroupManager.deleteGroup(group.id)
+                        }
+                    }
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show()
+            }
+        }
+
+        dialog.show()
+    }
+
+    fun showShareOptions(group: ProxyGroup) {
+        val options = arrayOf(
+            getString(R.string.action_export_clipboard),
+            getString(R.string.share_qr_nfc)
+        )
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.share_subscription)
+            .setItems(options) { _, which ->
+                val link = group.toUniversalLink()
+                if (which == 0) {
+                    val success = SagerNet.trySetPrimaryClip(link)
+                    (activity as MainActivity).snackbar(if (success) R.string.action_export_msg else R.string.action_export_err)
+                        .show()
+                } else {
+                    QRCodeDialog(
+                        link, group.displayName()
+                    ).showAllowingStateLoss(parentFragmentManager)
+                }
+            }
+            .show()
+    }
+
+    fun showExportOptions(group: ProxyGroup) {
+        val options = arrayOf(
+            getString(R.string.action_export_clipboard),
+            getString(R.string.action_export_file)
+        )
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.action_export)
+            .setItems(options) { _, which ->
+                if (which == 0) {
+                    runOnDefaultDispatcher {
+                        val profiles = SagerDatabase.proxyDao.getByGroup(group.id)
+                        val links = profiles.joinToString("\n") { it.toStdLink(compact = true) }
+                        onMainDispatcher {
+                            SagerNet.trySetPrimaryClip(links)
+                            (activity as MainActivity).snackbar(getString(R.string.copy_toast_msg)).show()
+                        }
+                    }
+                } else {
+                    selectedExportGroup = group
+                    startFilesForResult(exportProfilesFromHome, "profiles_${group.displayName()}.txt")
+                }
+            }
+            .show()
+    }
 
     private fun cancelSearch(searchView: SearchView) {
         searchView.onActionViewCollapsed()

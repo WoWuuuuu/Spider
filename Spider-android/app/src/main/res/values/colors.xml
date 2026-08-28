@@ -290,4 +290,5 @@
 
     <color name="preference_simple_menu_background">#FAFAFA</color>
 
+    <color name="overlay_blur_color">#E6F5F5F5</color>
 </resources>
