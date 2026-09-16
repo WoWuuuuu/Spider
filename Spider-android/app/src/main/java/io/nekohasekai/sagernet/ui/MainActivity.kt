@@ -55,10 +55,8 @@ class MainActivity : ThemedActivity(),
         super.onCreate(savedInstanceState)
 
         binding = LayoutMainBinding.inflate(layoutInflater)
-        binding.fab.initProgress(binding.fabProgress)
-        /* 抽屉（`DrawerLayout` + 两个 `NavigationView`）2026-09-16 已从 layout_main.xml 整个删掉，
-           这里原来那段「按主题挑 navView / 锁死抽屉」的初始化跟着一起删。
-           新主页的导航在右侧设置面板里，不再有抽屉。 */
+        /* 抽屉（`DrawerLayout` + 两个 `NavigationView`）与旧底部 FAB 纸飞机开关已彻底移除。
+           新主页的导航在右侧设置面板中，连接/断开总开关统一由顶栏的 ⏻ 负责。 */
 
         if (savedInstanceState == null) {
             navigateTo(DEST_HOME)
@@ -74,11 +72,6 @@ class MainActivity : ThemedActivity(),
             }
         }
 
-        binding.fab.setOnClickListener {
-            if (DataStore.serviceState.canStop) SagerNet.stopService() else connect.launch(
-                null
-            )
-        }
 
         setContentView(binding.root)
         changeState(BaseService.State.Idle)
@@ -290,21 +283,6 @@ class MainActivity : ThemedActivity(),
 
     @SuppressLint("CommitTransaction")
     fun displayFragment(fragment: ToolbarFragment) {
-        /* 新主页（TopologyFragment）**不要** FAB：
-           `fab` 是 `ServiceButton`，它的点击就是 `connect/stop` —— 和顶栏那个 ⏻
-           **完全同一个功能**，两个入口同时出现只会让人不知道点哪个。
-
-           底部那条 `StatsBar`（`@id/stats`）已经**整个从布局里删掉**了（2026-09-16 用户要求）：
-           新主页自己有一行摘要、① 层也有上下行，旧流量条是重复信息。
-           顺带记一笔它以前为什么其实一直是「关不掉」的 ——
-           `StatsBar.YourBehavior.slideDown` 开头就是 `if (!getAllowShow()) return`，
-           而 `allowShow` 正是想关它时要置 false 的那个标志，
-           所以 `allowShow = false` + `performHide()` 是**互相抵消**的，什么都不会发生。 */
-        if (fragment is TopologyFragment || !DataStore.showBottomBar) {
-            binding.fab.hide()
-        } else {
-            binding.fab.show()
-        }
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_holder, fragment)
             .commitAllowingStateLoss()
@@ -371,7 +349,6 @@ class MainActivity : ThemedActivity(),
     ) {
         DataStore.serviceState = state
 
-        binding.fab.changeState(state, DataStore.serviceState, animate)
         // 新主页顶栏的 ⏻ 也要跟着变。DataStore.serviceState 是个普通字段（DataStore.kt:28），
         // 不是持久化项、没有变更监听可注册，只能由这里推一下。
         // 这里不是新主页时 findFragmentById 会返回别的类型（或 null），安全跳过。
@@ -381,12 +358,7 @@ class MainActivity : ThemedActivity(),
     }
 
     override fun snackbarInternal(text: CharSequence): Snackbar {
-        return Snackbar.make(binding.coordinator, text, Snackbar.LENGTH_LONG).apply {
-            if (binding.fab.isShown) {
-                anchorView = binding.fab
-            }
-            // TODO
-        }
+        return Snackbar.make(binding.coordinator, text, Snackbar.LENGTH_LONG)
     }
 
     override fun stateChanged(state: BaseService.State, profileName: String?, msg: String?) {

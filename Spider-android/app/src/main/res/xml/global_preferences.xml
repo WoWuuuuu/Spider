@@ -232,9 +232,6 @@
             app:key="alwaysShowAddress"
             app:summary="@string/always_show_address_sum"
             app:title="@string/always_show_address" />
-        <SwitchPreference
-            app:key="showBottomBar"
-            app:title="@string/show_bottom_bar" />
         <Preference
             app:key="aboutLink"
             app:icon="@drawable/ic_baseline_info_24"

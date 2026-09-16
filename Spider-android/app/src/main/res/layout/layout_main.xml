@@ -24,31 +24,4 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- We double trackThickness as half of it will be invisible -->
-    <com.google.android.material.progressindicator.CircularProgressIndicator
-        android:id="@+id/fabProgress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:max="1"
-        android:visibility="invisible"
-        app:indicatorColor="?colorMaterial100"
-        app:layout_anchor="@+id/fab"
-        app:layout_anchorGravity="center"
-        app:layout_behavior="io.nekohasekai.sagernet.widget.FabProgressBehavior"
-        app:trackCornerRadius="@dimen/mtrl_progress_track_thickness"
-        app:trackThickness="8dp" />
-
-    <!-- 原先 `app:layout_anchor="@id/stats"`：底部流量条在时，FAB 靠它顶到「屏幕底部居中」。
-         流量条已经删掉（用户要求），改成直接锚在内容区底部居中，位置不变。 -->
-    <io.nekohasekai.sagernet.widget.ServiceButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:elevation="6dp"
-        app:backgroundTint="?fabColorBackground"
-        app:layout_anchor="@id/fragment_holder"
-        app:layout_anchorGravity="bottom|center_horizontal"
-        app:pressedTranslationZ="6dp"
-        app:srcCompat="@drawable/ic_service_idle" />
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
