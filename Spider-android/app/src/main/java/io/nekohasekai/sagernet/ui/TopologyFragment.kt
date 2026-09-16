@@ -5,8 +5,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.os.PowerManager
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
@@ -37,6 +39,7 @@ import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.group.RawUpdater
 import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.SubscriptionFoundException
+import io.nekohasekai.sagernet.ktx.broadcastReceiver
 import io.nekohasekai.sagernet.ktx.needReload
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import io.nekohasekai.sagernet.ktx.readableMessage
@@ -191,6 +194,11 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
      * 所以切后台之后连一条推送都不会来（没有客户端定时器，也就没有后台开销）。
      */
     private var pushConnections: ClashSubscription? = null
+
+    private val powerSaveReceiver = broadcastReceiver { _, _ ->
+        stopPush()
+        startPush()
+    }
 
     /**
      * 上一次 `/rules` 的结果。
@@ -361,6 +369,7 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
 
         topologyView = view.findViewById(R.id.topology_view)
         particleView = view.findViewById(R.id.topology_particles)
+        topologyView?.blurView = view.findViewById(R.id.topology_blur)
         summaryView = view.findViewById(R.id.topology_summary)
         refreshLayout = view.findViewById(R.id.topology_refresh)
 
@@ -1192,10 +1201,17 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
            这一趟同时也把 ②③ 层（数据库那半边）带上来 —— 推送只有 Clash 那一半。 */
         refresh()
         startPush()
+        runCatching {
+            requireContext().registerReceiver(
+                powerSaveReceiver,
+                IntentFilter(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
+            )
+        }
     }
 
     override fun onStop() {
         super.onStop()
+        runCatching { requireContext().unregisterReceiver(powerSaveReceiver) }
         /* 切后台把在途请求和推送流一起收掉 —— 本页没有任何客户端定时器，
            所以这里收完就是「零后台开销」。 */
         refreshJob?.cancel()

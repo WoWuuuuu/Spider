@@ -71,18 +71,17 @@ class SagerNet : Application(),
 
             // fix multi process issue in Android 9+
             JavaUtil.handleWebviewDir(this)
-
-            runOnDefaultDispatcher {
-                PackageCache.register()
-                cleanWebview()
-            }
         }
 
         if (isMainProcess) {
             DataStore.initGlobal()
+            com.google.android.material.color.DynamicColors.applyToActivitiesIfAvailable(this)
             Theme.apply(this)
             Theme.applyNightTheme()
             runOnDefaultDispatcher {
+                PackageCache.register()
+                cleanWebview()
+
                 DefaultNetworkListener.start(this) {
                     underlyingNetwork = it
                 }

@@ -74,6 +74,10 @@ data class TopologyInbound(
     val id: String,
     /** chip 主信息：域名，取不到就退回目标 IP */
     val label: String,
+    /** chip 地区/出口标签（如 "US", "HK", "直连" 等） */
+    val proxyLabel: String = "",
+    /** 流量相对权重大小（0.80f ~ 1.25f），驱动框框整体大小变化 */
+    val sizeHint: Float = 1.0f,
     /** chip 副信息前半：`host:port` */
     val endpoint: String,
     /** 进程/包名，可能为空 */
@@ -100,6 +104,19 @@ data class TopologyInbound(
     val connectionCount: Int = 1,
 ) {
     val total: Long get() = upload + download
+
+    /**
+     * 视觉展示文本：「地区·标题」格式，如 "US·google", "HK·youtube", "直连·bilibili"
+     */
+    val displayLabel: String
+        get() {
+            val main = TopologyModelHelper.extractMainDomain(label)
+            return if (proxyLabel.isNotBlank()) {
+                "$proxyLabel·$main"
+            } else {
+                main
+            }
+        }
 }
 
 /** ① 层的状态 —— 对应 plan §1.3 里跟 ① 有关的那几条降级态 */
@@ -147,6 +164,59 @@ data class TopologySnapshot(
  * 这里**不写任何数据** —— 阶段 1~4 的写操作只有「长按规则卡换出口」一条，
  * 且走的是 ProfileManager + needReload()，不在这里。
  */
+object TopologyModelHelper {
+
+    fun extractMainDomain(host: String): String {
+        if (host.isBlank()) return host
+        if (host.firstOrNull()?.isDigit() == true || host.contains(':')) {
+            return host
+        }
+        val parts = host.split('.').filter { it.isNotBlank() }
+        if (parts.size <= 2) {
+            return parts.firstOrNull() ?: host
+        }
+        val secondToLast = parts[parts.size - 2].lowercase()
+        val last = parts.last().lowercase()
+        val isCcTldSub = secondToLast in setOf("com", "co", "org", "net", "edu", "gov") && last.length == 2
+        return if (isCcTldSub && parts.size >= 3) {
+            parts[parts.size - 3]
+        } else {
+            parts[parts.size - 2]
+        }
+    }
+
+    fun extractRegion(name: String): String {
+        if (name.isBlank()) return "节点"
+        val flagMap = mapOf(
+            "🇺🇸" to "US", "🇭🇰" to "HK", "🇯🇵" to "JP", "🇸🇬" to "SG", "🇹🇼" to "TW",
+            "🇬🇧" to "UK", "🇰🇷" to "KR", "🇩🇪" to "DE", "🇨🇦" to "CA", "🇦🇺" to "AU",
+            "🇫🇷" to "FR", "🇷🇺" to "RU", "🇮🇳" to "IN", "🇲🇾" to "MY"
+        )
+        for ((flag, code) in flagMap) {
+            if (name.contains(flag)) return code
+        }
+        val bracketMatch = Regex("[\\[(【]([A-Za-z]{2,3}|[\u4e00-\u9fa5]{2})[\\])】]").find(name)
+        if (bracketMatch != null) {
+            return bracketMatch.groupValues[1].uppercase()
+        }
+        val regionCodes = listOf("US", "HK", "JP", "SG", "TW", "UK", "KR", "DE", "CA", "AU", "FR", "RU", "IN", "MY")
+        for (code in regionCodes) {
+            if (Regex("(^|[^A-Za-z])$code([^A-Za-z]|$)", RegexOption.IGNORE_CASE).containsMatchIn(name)) {
+                return code.uppercase()
+            }
+        }
+        val cnRegions = listOf(
+            "美国" to "US", "香港" to "HK", "日本" to "JP", "新加坡" to "SG",
+            "台湾" to "TW", "英国" to "UK", "韩国" to "KR", "德国" to "DE"
+        )
+        for ((cn, code) in cnRegions) {
+            if (name.contains(cn)) return code
+        }
+        val clean = name.trim().take(4).trim()
+        return if (clean.isNotBlank()) clean else "节点"
+    }
+}
+
 object TopologyRepository {
 
     /** ② 层最多显示几张规则卡（收起态，超出的折成「+N 更多」） */
@@ -322,7 +392,7 @@ object TopologyRepository {
         }
 
         /* ① 层：实时连接。未命中特定自定义规则的流量，自动归属并连线到默认分流卡片！ */
-        val inbound = buildInbound(clash, enabled, shownRuleIds)
+        val inbound = buildInbound(clash, enabled, shownRuleIds, allNodes.associateBy { it.id }, mainId)
 
         return TopologySnapshot(
             rules = ruleCards,
@@ -376,6 +446,8 @@ object TopologyRepository {
         clash: ClashResult,
         enabled: List<RuleEntity>,
         shownRuleIds: Set<String>,
+        nodeById: Map<Long, ProxyEntity> = emptyMap(),
+        mainId: Long = 0L,
     ): InboundResult {
         when (clash) {
             is ClashResult.Disabled -> return InboundResult(TopologyInboundState.DISABLED)
@@ -415,6 +487,7 @@ object TopologyRepository {
             /** 最早那条连接的建立时间。RFC3339 同格式下字符串比较即时间比较。 */
             var earliestStart = ""
             var count = 0
+            var chainTag = ""
             /** ruleId → 累计流量，用来挑「代表规则」 */
             val trafficByRule = HashMap<Long, Long>()
             /** ruleId → 匹配类型。规则匹配上了就用它，比 fallbackKind 更准 */
@@ -436,6 +509,10 @@ object TopologyRepository {
             acc.download += conn.download
             if (acc.app.isBlank()) acc.app = conn.metadata.appPackage
             if (acc.endpoint.isBlank()) acc.endpoint = conn.endpoint
+            val chain = conn.chains.lastOrNull().orEmpty()
+            if (acc.chainTag.isBlank() && chain.isNotBlank()) {
+                acc.chainTag = chain
+            }
             /* RFC3339 都是定长且零填充的，同格式下字典序 = 时间序，不用解析成 Date。
                拿不到 start 的连接（空串）直接跳过，否则空串会「比谁都早」。 */
             if (conn.start.isNotBlank() &&
@@ -468,9 +545,28 @@ object TopologyRepository {
             } else {
                 null
             }
+
+            val ruleOutbound = rule?.outbound ?: if (ID_DEFAULT_RULE in shownRuleIds) OUTBOUND_PROXY else null
+            val proxyLabel = when {
+                ruleOutbound == OUTBOUND_BYPASS || acc.chainTag.equals("direct", ignoreCase = true) -> "直连"
+                ruleOutbound == OUTBOUND_BLOCK || acc.chainTag.equals("block", ignoreCase = true) || acc.chainTag.equals("reject", ignoreCase = true) -> "拦截"
+                ruleOutbound == OUTBOUND_PROXY || ruleOutbound == 0L -> {
+                    val node = nodeById[mainId]
+                    TopologyModelHelper.extractRegion(node?.displayName() ?: acc.chainTag)
+                }
+                ruleOutbound != null && ruleOutbound > 0L -> {
+                    val node = nodeById[ruleOutbound]
+                    TopologyModelHelper.extractRegion(node?.displayName() ?: acc.chainTag)
+                }
+                acc.chainTag.isNotBlank() -> TopologyModelHelper.extractRegion(acc.chainTag)
+                else -> ""
+            }
+
             TopologyInbound(
                 id = "in-$host",
                 label = host,
+                proxyLabel = proxyLabel,
+                sizeHint = 1.0f,
                 endpoint = acc.endpoint,
                 appPackage = acc.app,
                 upload = acc.upload,
@@ -483,7 +579,16 @@ object TopologyRepository {
             )
         }.sortedByDescending { it.total }
 
-        val shown = all.take(IN_MAX)
+        val maxTraffic = all.firstOrNull()?.total ?: 0L
+        val shown = all.take(IN_MAX).map { inbound ->
+            val sizeHint = if (maxTraffic > 0L) {
+                val ratio = (kotlin.math.ln(1.0 + inbound.total) / kotlin.math.ln(1.0 + maxTraffic)).toFloat()
+                (0.80f + 0.45f * ratio).coerceIn(0.80f, 1.25f)
+            } else {
+                1.0f
+            }
+            inbound.copy(sizeHint = sizeHint)
+        }
 
         return InboundResult(
             state = TopologyInboundState.OK,

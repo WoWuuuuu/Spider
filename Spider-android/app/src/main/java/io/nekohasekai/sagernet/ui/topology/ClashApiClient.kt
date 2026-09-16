@@ -1,5 +1,6 @@
 package io.nekohasekai.sagernet.ui.topology
 
+import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.database.DataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -113,7 +114,17 @@ object ClashApiClient {
      *
      * 想调只改这一个常量（1000 = 最实时，5000 = 最省）。
      */
-    private const val PUSH_INTERVAL_MS = 3_000L
+    /**
+     * 内核推送 `/connections` 的动态间隔（毫秒）。
+     * 常亮时 5000ms，节电模式下 8000ms。
+     */
+    fun getDynamicPushInterval(): Long {
+        return if (runCatching { SagerNet.power.isPowerSaveMode }.getOrDefault(false)) {
+            8_000L
+        } else {
+            5_000L
+        }
+    }
 
     /**
      * 超时全部压到秒级：目标是本机回环，正常时是亚毫秒级。
@@ -188,7 +199,7 @@ object ClashApiClient {
      * [onEnd] 只在**意外断开**时来一次（主动 [ClashSubscription.close] 不会触发）。
      */
     fun subscribeConnections(
-        intervalMs: Long = PUSH_INTERVAL_MS,
+        intervalMs: Long = getDynamicPushInterval(),
         onSnapshot: (ClashSnapshot) -> Unit,
         onEnd: (String) -> Unit,
     ): ClashSubscription {

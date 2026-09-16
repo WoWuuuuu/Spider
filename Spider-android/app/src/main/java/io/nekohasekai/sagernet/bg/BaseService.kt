@@ -64,6 +64,20 @@ class BaseService {
                     }
                 }
 
+                PowerManager.ACTION_POWER_SAVE_MODE_CHANGED -> runOnDefaultDispatcher {
+                    val isPowerSave = SagerNet.power.isPowerSaveMode
+                    if (isPowerSave) {
+                        service.wakeLock?.apply {
+                            if (isHeld) release()
+                        }
+                        service.wakeLock = null
+                        notification?.postNotificationWakeLockStatus(false)
+                    } else if (DataStore.acquireWakeLock) {
+                        service.acquireWakeLock()
+                        notification?.postNotificationWakeLockStatus(true)
+                    }
+                }
+
                 Action.RESET_UPSTREAM_CONNECTIONS -> runOnDefaultDispatcher {
                     Libcore.resetAllConnections(true)
                     runOnMainDispatcher {
@@ -301,7 +315,7 @@ class BaseService {
                 wakeLock = null
             }
 
-            if (DataStore.acquireWakeLock) {
+            if (DataStore.acquireWakeLock && !SagerNet.power.isPowerSaveMode) {
                 acquireWakeLock()
                 data.notification?.postNotificationWakeLockStatus(true)
             } else {
@@ -333,6 +347,7 @@ class BaseService {
                     // addAction(Action.SWITCH_WAKE_LOCK)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
+                        addAction(PowerManager.ACTION_POWER_SAVE_MODE_CHANGED)
                     }
                     addAction(Action.RESET_UPSTREAM_CONNECTIONS)
                 }

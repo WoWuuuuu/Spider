@@ -104,24 +104,60 @@ class TopologyView @JvmOverloads constructor(
      * 画面会永远停在旧位置上，这种错必须**不可能**发生。
      * 30 张卡约 1KB，2 秒一次，成本可以忽略。
      */
+    /** 上一次缓存的 ②③ 层结构 key，以及对应的 rules / outbounds / overflow 指纹 */
+    private var lastDbStructureKey: String? = null
+    private var lastRulesRef: List<TopologyCard>? = null
+    private var lastOutboundsRef: List<TopologyCard>? = null
+    private var lastRuleOverflow: Int = -1
+    private var lastOutboundOverflow: Int = -1
+
+    private fun dbStructureKey(snap: TopologySnapshot): String {
+        if (lastDbStructureKey != null &&
+            lastRulesRef === snap.rules &&
+            lastOutboundsRef === snap.outbounds &&
+            lastRuleOverflow == snap.ruleOverflow &&
+            lastOutboundOverflow == snap.outboundOverflow
+        ) {
+            return lastDbStructureKey!!
+        }
+        val key = buildString(256) {
+            append(snap.ruleOverflow).append('|').append(snap.outboundOverflow).append('|')
+            snap.rules.forEach {
+                append(it.id).append('\u001f').append(it.title).append('\u001f')
+                    .append(it.subtitle).append('\u001f').append(it.kind.ordinal).append('\u001e')
+            }
+            append('|')
+            snap.outbounds.forEach {
+                append(it.id).append('\u001f').append(it.title).append('\u001f')
+                    .append(it.subtitle).append('\u001f').append(it.kind.ordinal).append('\u001e')
+            }
+        }
+        lastRulesRef = snap.rules
+        lastOutboundsRef = snap.outbounds
+        lastRuleOverflow = snap.ruleOverflow
+        lastOutboundOverflow = snap.outboundOverflow
+        lastDbStructureKey = key
+        return key
+    }
+
+    /**
+     * 「结构指纹」—— 只包含**会影响画法**的字段。
+     *
+     * 拆分缓存：②③ 层来自数据库，在推送过程中不会变，复用 [dbStructureKey] 避免反复拼接字符串。
+     * ① 层在尾部追加，包含 [TopologyInbound.sizeHint] 变动检测。
+     */
     private fun structureKey(snap: TopologySnapshot): String = buildString(512) {
         append(snap.inboundState.ordinal).append('|')
-        append(snap.ruleOverflow).append('|').append(snap.outboundOverflow).append('|')
-        snap.rules.forEach {
-            append(it.id).append('\u001f').append(it.title).append('\u001f')
-                .append(it.subtitle).append('\u001f').append(it.kind.ordinal).append('\u001e')
-        }
-        append('|')
-        snap.outbounds.forEach {
-            append(it.id).append('\u001f').append(it.title).append('\u001f')
-                .append(it.subtitle).append('\u001f').append(it.kind.ordinal).append('\u001e')
-        }
-        append('|')
+        append(dbStructureKey(snap)).append('|')
         snap.inbounds.forEach {
-            append(it.id).append('\u001f').append(it.label).append('\u001f')
-                .append(it.ruleCardId ?: "").append('\u001e')
+            append(it.id).append('\u001f').append(it.displayLabel).append('\u001f')
+                .append(it.ruleCardId ?: "").append('\u001f')
+                .append(it.sizeHint).append('\u001e')
         }
     }
+
+    /** 硬件模糊背景层 */
+    var blurView: TopologyBlurView? = null
 
     /** 粒子层。卡片层是它唯一的数据源 —— 粒子层自己不碰数据库、也不算布局。 */
     var particleView: TopologyParticleView? = null
@@ -382,18 +418,16 @@ class TopologyView @JvmOverloads constructor(
            这样「预留框 ⊇ 任何可能画出来的矩形」在构造上成立，而不是靠余量恰好够。 */
         if (snap.inbounds.isNotEmpty()) {
             val items = ArrayList<TopologyLayout.Item>(snap.inbounds.size)
+            val baseH = 22f * TopologyLayout.DEPTH_MAX * unit.y
             snap.inbounds.forEach {
-                items.add(
-                    TopologyLayout.Item(
-                        it.id,
-                        TopologyLayout.chipWidth(it.label) * TopologyLayout.DEPTH_MAX * unit.x,
-                    )
-                )
+                val itemW = TopologyLayout.chipWidth(it.displayLabel) * it.sizeHint * TopologyLayout.DEPTH_MAX * unit.x
+                val itemH = baseH * it.sizeHint
+                items.add(TopologyLayout.Item(it.id, itemW, h = itemH))
             }
             TopologyLayout.placeScattered(
                 items, x0, x1,
                 TopologyRegions.IN_Y0 * h, TopologyRegions.IN_Y1 * h,
-                22f * TopologyLayout.DEPTH_MAX * unit.y, gap = 8f * unit.y,
+                baseH, gap = 8f * unit.y,
                 capLo = 3, capHi = 5,
                 seed = 20260914L, layer = 1, unit = unit, out = boxes,
             )
@@ -442,6 +476,50 @@ class TopologyView @JvmOverloads constructor(
                 46f * unit.y, gap = 8f * unit.y, capLo = 1, capHi = 3,
                 seed = 20260914L, layer = 3, unit = unit, out = boxes,
             )
+        }
+
+        /* 收集真实模糊层几何数据（Android 12+） */
+        blurView?.let { bv ->
+            val blurItems = ArrayList<TopologyBlurView.BlurItem>(boxes.size)
+            snap.inbounds.forEach { chip ->
+                boxes[chip.id]?.let { box ->
+                    val depth = TopologyLayout.depthAt(box.cy, TopologyRegions.IN_Y0 * h, TopologyRegions.IN_Y1 * h)
+                    val s = TopologyLayout.depthScale(depth)
+                    val alpha = (TopologyLayout.depthAlpha(depth) * 255f).toInt().coerceIn(0, 255)
+                    val bw = box.w / TopologyLayout.DEPTH_MAX * s
+                    val bh = box.h / TopologyLayout.DEPTH_MAX * s
+                    val radius = minOf(bh / 2f, 9f * unit.y * s)
+                    blurItems.add(
+                        TopologyBlurView.BlurItem(
+                            box.cx, box.cy, bw, bh, radius,
+                            palette.cardFill, (alpha * 0.85f).toInt()
+                        )
+                    )
+                }
+            }
+            snap.rules.forEach { card ->
+                boxes[card.id]?.let { box ->
+                    val radius = minOf(box.h * 0.24f, 11f * density)
+                    blurItems.add(
+                        TopologyBlurView.BlurItem(
+                            box.cx, box.cy, box.w, box.h, radius,
+                            palette.cardFill, 220
+                        )
+                    )
+                }
+            }
+            snap.outbounds.forEach { card ->
+                boxes[card.id]?.let { box ->
+                    val radius = minOf(box.h * 0.24f, 11f * density)
+                    blurItems.add(
+                        TopologyBlurView.BlurItem(
+                            box.cx, box.cy, box.w, box.h, radius,
+                            palette.cardFill, 220
+                        )
+                    )
+                }
+            }
+            bv.setBlurBoxes(blurItems)
         }
     }
 
@@ -684,10 +762,11 @@ class TopologyView @JvmOverloads constructor(
         val pad = 7f * unit.x * s
         val icon = if (isLanHost(chip.label)) ICON_LAN else ICON_WEB
         val iconW = textPaint.measureText(icon)
-        val gap = 5f * unit.x * s
+        val gap = 4f * unit.x * s
+        val labelText = chip.displayLabel
         val labelMax = (w - pad * 2f - iconW - gap).coerceAtLeast(1f)
-        val label = chipCache.getOrPut(box.id) {
-            TextUtils.ellipsize(chip.label, textPaint, labelMax, TextUtils.TruncateAt.MIDDLE).toString()
+        val label = chipCache.getOrPut("${box.id}_${w.toInt()}") {
+            TextUtils.ellipsize(labelText, textPaint, labelMax, TextUtils.TruncateAt.MIDDLE).toString()
         }
 
         val fm = textPaint.fontMetrics

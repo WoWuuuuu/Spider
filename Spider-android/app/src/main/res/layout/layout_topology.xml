@@ -46,6 +46,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
+                <io.nekohasekai.sagernet.ui.topology.TopologyBlurView
+                    android:id="@+id/topology_blur"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="false"
+                    android:focusable="false" />
+
                 <io.nekohasekai.sagernet.ui.topology.TopologyView
                     android:id="@+id/topology_view"
                     android:layout_width="match_parent"

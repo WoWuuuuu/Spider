@@ -80,7 +80,7 @@ object TopologyLayout {
      * 卡片被压在 62 单位、标题被省略号切掉。把「装下最长标题需要多宽」当上限传进来即可。
      * 0 = 不设下限（行为与加这个字段之前完全一致）。
      */
-    class Item(val id: String, val w: Float, val minW: Float = 0f)
+    class Item(val id: String, val w: Float, val minW: Float = 0f, val h: Float = 0f)
 
     /** 原型像素 → 真机像素的换算比例 */
     class Unit(val x: Float, val y: Float = x)
@@ -179,9 +179,13 @@ object TopologyLayout {
             rows = buildRows(forced, forced)
         }
 
-        /* 3. 行中心：随机间距 */
+        /* 3. 行中心：支持每行按最大项高度动态计算，随机间距 */
         val r = rows.size
-        val slack = ((hh - h) - (r - 1) * (h + gap)).coerceAtLeast(0f)
+        val rowHeights = FloatArray(r) { i ->
+            rows[i].items.maxOfOrNull { if (it.h > 0f) it.h else h } ?: h
+        }
+        val sumHeights = rowHeights.sum()
+        val slack = ((hh - sumHeights) - (r - 1) * gap).coerceAtLeast(0f)
         val wts = FloatArray(r + 1)
         var sum = 0f
         for (i in 0..r) {
@@ -190,10 +194,10 @@ object TopologyLayout {
         }
         val pads = FloatArray(r + 1) { wts[it] / sum * slack } // [0]顶余量 [1..r-1]行间余量 [r]底余量
         val cy = FloatArray(r)
-        var yy = y0 + h / 2f + pads[0]
+        var yy = y0 + pads[0]
         for (i in 0 until r) {
-            cy[i] = yy
-            if (i < r - 1) yy += h + gap + pads[i + 1]
+            cy[i] = yy + rowHeights[i] / 2f
+            if (i < r - 1) yy += rowHeights[i] + gap + pads[i + 1]
         }
 
         /* 4. 摆放 */
@@ -229,8 +233,9 @@ object TopologyLayout {
 
             var x = x0 + pd[0]
             row.items.forEachIndexed { k, item ->
+                val itemH = if (item.h > 0f) item.h else h
                 val y = cy[i] + off[k] + ((rnd.next() * 2 - 1).toFloat()) * rj
-                out[item.id] = TopologyBox(item.id, layer, x + item.w / 2f, y, item.w, h)
+                out[item.id] = TopologyBox(item.id, layer, x + item.w / 2f, y, item.w, itemH)
                 if (k < gaps) x += item.w + gap + pd[k + 1]
             }
         }

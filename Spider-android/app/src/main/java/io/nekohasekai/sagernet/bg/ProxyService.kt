@@ -15,10 +15,9 @@ class ProxyService : Service(), BaseService.Interface {
     override var wakeLock: PowerManager.WakeLock? = null
     override var upstreamInterfaceName: String? = null
 
-    @SuppressLint("WakelockTimeout")
     override fun acquireWakeLock() {
         wakeLock = SagerNet.power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "sagernet:proxy")
-            .apply { acquire() }
+            .apply { acquire(4 * 3600 * 1000L) }
     }
 
     override fun onBind(intent: Intent) = super.onBind(intent)
