@@ -19,9 +19,6 @@ android {
        清单里所有 authorities / permission 都写成 ${applicationId}，所以换后缀是安全的。
        带前导点表示「替换整个后缀」而不是「追加」。 */
     buildTypes {
-        getByName("debug") {
-            applicationIdSuffix = ".newui"
-        }
         getByName("release") {
             signingConfig = signingConfigs.getByName("debug")
         }

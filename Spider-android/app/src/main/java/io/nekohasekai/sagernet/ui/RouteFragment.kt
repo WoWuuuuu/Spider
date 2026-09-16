@@ -1,10 +1,13 @@
 package io.nekohasekai.sagernet.ui
 
+import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.Toolbar
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -28,6 +31,16 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
     lateinit var ruleAdapter: RuleAdapter
     lateinit var undoManager: UndoSnackbarManager<RuleEntity>
 
+    val selectDefaultProxy = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val profileId = result.data?.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0L) ?: 0L
+            if (profileId > 0) {
+                DataStore.selectedProxy = profileId
+                ruleAdapter.notifyItemChanged(ruleAdapter.ruleList.size + 1)
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -50,7 +63,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             override fun getSwipeDirs(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
-            ) = if (viewHolder is RuleAdapter.DocumentHolder) {
+            ) = if (viewHolder is RuleAdapter.DocumentHolder || viewHolder is RuleAdapter.DefaultRouteHolder) {
                 0
             } else {
                 super.getSwipeDirs(recyclerView, viewHolder)
@@ -59,7 +72,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             override fun getDragDirs(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder,
-            ) = if (viewHolder is RuleAdapter.DocumentHolder) {
+            ) = if (viewHolder is RuleAdapter.DocumentHolder || viewHolder is RuleAdapter.DefaultRouteHolder) {
                 0
             } else {
                 super.getDragDirs(recyclerView, viewHolder)
@@ -67,15 +80,18 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val index = viewHolder.bindingAdapterPosition
-                ruleAdapter.remove(index)
-                undoManager.remove(index to (viewHolder as RuleAdapter.RuleHolder).rule)
+                if (index > 0 && index <= ruleAdapter.ruleList.size) {
+                    val rule = ruleAdapter.ruleList[index - 1]
+                    ruleAdapter.remove(index)
+                    undoManager.remove(index to rule)
+                }
             }
 
             override fun onMove(
                 recyclerView: RecyclerView,
                 viewHolder: RecyclerView.ViewHolder, target: RecyclerView.ViewHolder,
             ): Boolean {
-                return if (target is RuleAdapter.DocumentHolder) {
+                return if (target is RuleAdapter.DocumentHolder || target is RuleAdapter.DefaultRouteHolder || viewHolder is RuleAdapter.DefaultRouteHolder) {
                     false
                 } else {
                     ruleAdapter.move(viewHolder.bindingAdapterPosition, target.bindingAdapterPosition)
@@ -147,32 +163,34 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             parent: ViewGroup,
             viewType: Int,
         ): RecyclerView.ViewHolder {
-            return if (viewType == 0) {
-                DocumentHolder(LayoutEmptyRouteBinding.inflate(layoutInflater, parent, false))
-            } else {
-                RuleHolder(LayoutRouteItemBinding.inflate(layoutInflater, parent, false))
+            return when (viewType) {
+                0 -> DocumentHolder(LayoutEmptyRouteBinding.inflate(layoutInflater, parent, false))
+                2 -> DefaultRouteHolder(LayoutRouteItemBinding.inflate(layoutInflater, parent, false))
+                else -> RuleHolder(LayoutRouteItemBinding.inflate(layoutInflater, parent, false))
             }
         }
 
         override fun getItemViewType(position: Int): Int {
             if (position == 0) return 0
+            if (position == ruleList.size + 1) return 2
             return 1
         }
 
         override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-            if (holder is DocumentHolder) {
-                holder.bind()
-            } else if (holder is RuleHolder) {
-                holder.bind(ruleList[position - 1])
+            when (holder) {
+                is DocumentHolder -> holder.bind()
+                is DefaultRouteHolder -> holder.bind()
+                is RuleHolder -> holder.bind(ruleList[position - 1])
             }
         }
 
         override fun getItemCount(): Int {
-            return ruleList.size + 1
+            return ruleList.size + 2
         }
 
         override fun getItemId(position: Int): Long {
             if (position == 0) return 0L
+            if (position == ruleList.size + 1) return -1L
             return ruleList[position - 1].id
         }
 
@@ -278,6 +296,7 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
             val editButton = binding.edit
             val shareLayout = binding.share
             val enableSwitch = binding.enable
+            val displayOnHome = binding.displayOnHome
 
             fun bind(ruleEntity: RuleEntity) {
                 rule = ruleEntity
@@ -302,6 +321,44 @@ class RouteFragment : ToolbarFragment(R.layout.layout_route), Toolbar.OnMenuItem
                         putExtra(RouteSettingsActivity.EXTRA_ROUTE_ID, rule.id)
                     })
                 }
+
+                val isShown = DataStore.isRuleShownOnHome(rule.id)
+                displayOnHome.visibility = View.VISIBLE
+                displayOnHome.setImageResource(if (isShown) R.drawable.ic_visibility else R.drawable.ic_visibility_off)
+                displayOnHome.alpha = if (isShown) 1.0f else 0.4f
+                displayOnHome.setOnClickListener {
+                    val nextState = !DataStore.isRuleShownOnHome(rule.id)
+                    DataStore.setRuleShownOnHome(rule.id, nextState)
+                    displayOnHome.setImageResource(if (nextState) R.drawable.ic_visibility else R.drawable.ic_visibility_off)
+                    displayOnHome.alpha = if (nextState) 1.0f else 0.4f
+                    Toast.makeText(
+                        it.context,
+                        if (nextState) R.string.route_display_on_home else R.string.route_display_on_home_summary,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+
+        inner class DefaultRouteHolder(val binding: LayoutRouteItemBinding) : RecyclerView.ViewHolder(binding.root) {
+            fun bind() {
+                binding.profileName.setText(R.string.route_default_title)
+                binding.profileType.setText(R.string.route_default_desc)
+                val profile = ProfileManager.getProfile(DataStore.selectedProxy)
+                binding.routeOutbound.text = profile?.displayName() ?: getString(R.string.route_proxy)
+                binding.displayOnHome.visibility = View.GONE
+                binding.share.visibility = View.GONE
+                binding.enable.isChecked = true
+                binding.enable.isEnabled = false
+                val onClick = View.OnClickListener {
+                    val intent = Intent(requireContext(), ProfileSelectActivity::class.java)
+                    if (DataStore.selectedProxy > 0) {
+                        intent.putExtra(ProfileSelectActivity.EXTRA_SELECTED, DataStore.selectedProxy)
+                    }
+                    selectDefaultProxy.launch(intent)
+                }
+                binding.edit.setOnClickListener(onClick)
+                binding.root.setOnClickListener(onClick)
             }
         }
 

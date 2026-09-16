@@ -74,6 +74,7 @@ class RouteSettingsActivity(
             else -> 3
         }
         DataStore.routePackages = packages.joinToString("\n")
+        DataStore.routeDisplayOnHome = DataStore.isRuleShownOnHome(id)
     }
 
     fun RuleEntity.serialize() {
@@ -272,13 +273,16 @@ class RouteSettingsActivity(
                 setResult(RESULT_OK, Intent())
             }
 
-            ProfileManager.createRule(RuleEntity().apply { serialize() })
+            val entity = RuleEntity().apply { serialize() }
+            val created = ProfileManager.createRule(entity)
+            DataStore.setRuleShownOnHome(created.id, DataStore.routeDisplayOnHome)
         } else {
             val entity = SagerDatabase.rulesDao.getById(DataStore.editingId)
             if (entity == null) {
                 finish()
                 return
             }
+            DataStore.setRuleShownOnHome(entity.id, DataStore.routeDisplayOnHome)
             ProfileManager.updateRule(entity.apply { serialize() })
         }
         finish()

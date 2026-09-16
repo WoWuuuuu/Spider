@@ -204,6 +204,9 @@ object TopologyRepository {
     /** ③ 层「主代理」卡的稳定 id（对应 outbound = 0 / 当前选中 profile） */
     const val ID_MAIN = "ou-proxy"
 
+    /** ② 层「默认路由/兜底分流」卡的稳定 id */
+    const val ID_DEFAULT_RULE = "ru-default"
+
     private const val OUTBOUND_PROXY = 0L
     private const val OUTBOUND_BYPASS = -1L
     private const val OUTBOUND_BLOCK = -2L
@@ -223,7 +226,7 @@ object TopologyRepository {
         expandOutbounds: Boolean = false,
     ): TopologySnapshot {
         val allRules = SagerDatabase.rulesDao.allRules() /* 已 ORDER BY userOrder */
-        val enabled = allRules.filter { it.enabled }
+        val enabled = allRules.filter { it.enabled && DataStore.isRuleShownOnHome(it.id) }
         /* ③ 层节点池 = pill 选的分组（**不是全库**）。规则本身是全局的（内核按 userOrder
            全库匹配），但只画「指向本组节点」的 ③ 卡和 ②→③ 连线 —— 这就是「不同规则用不同
            节点，节点来自左上角 pill」的那套语义。
@@ -244,9 +247,12 @@ object TopologyRepository {
            （ConfigBuilder.kt:577-582），所以这里必须一起合并，否则会出现两张同名的 ③ 卡。 */
         val mainId = DataStore.selectedProxy
 
-        /* ③ 出站：按「启用的规则里首次出现」的顺序收集目标，去重。
-           规则绕过分组直接指向节点，所以这里拿到的是 profile id，跟分组无关。 */
+        /* ③ 出站：主出站卡片始终常驻保底，再按「启用的规则里首次出现」的顺序收集目标，去重。 */
         val outCards = LinkedHashMap<String, TopologyCard>()
+        val mainCard = outboundCard(OUTBOUND_PROXY, nodeById, mainId, allNodeIds)
+        if (mainCard != null) {
+            outCards[mainCard.id] = mainCard
+        }
         enabled.forEach { rule ->
             val card = outboundCard(rule.outbound, nodeById, mainId, allNodeIds) ?: return@forEach
             outCards.putIfAbsent(card.id, card)
@@ -258,9 +264,17 @@ object TopologyRepository {
         val shownOut = if (outOver > 0) allOut.take(outCap - 1) else allOut
         val shownOutIds = shownOut.mapTo(HashSet()) { it.id }
 
-        /* ② 规则：顺序 = 内核的匹配优先级，不能重排（第一条命中即生效）。 */
+        /* ② 规则：常驻「默认分流」卡片作为最终兜底，并展现启用的自定义规则 */
+        val defaultRuleCard = TopologyCard(
+            id = ID_DEFAULT_RULE,
+            layer = 2,
+            title = app.getString(R.string.topology_default_route),
+            subtitle = app.getString(R.string.topology_default_route_sub),
+            kind = TopologyKind.PROXY,
+        )
+
         val ruleCap = if (expandRules) RULE_MAX_EXPANDED else RULE_MAX
-        val ruleCards = enabled.take(ruleCap).map { rule ->
+        val customRuleCards = enabled.take((ruleCap - 1).coerceAtLeast(0)).map { rule ->
             TopologyCard(
                 id = "ru-${rule.id}",
                 layer = 2,
@@ -270,9 +284,6 @@ object TopologyRepository {
                     OUTBOUND_BYPASS -> TopologyKind.DIRECT
                     OUTBOUND_BLOCK -> TopologyKind.BLOCK
                     OUTBOUND_PROXY -> TopologyKind.PROXY
-                    /* 判「孤儿」必须拿**全库** id 比，不能拿本组节点池比：
-                       指向别组节点的规则是**完全有效**的，只是本组视图里没有它的 ③ 卡。
-                       用 nodeById 判会把它误报成「节点已删除」。 */
                     else -> if (rule.outbound in allNodeIds) {
                         TopologyKind.PROXY
                     } else {
@@ -281,29 +292,41 @@ object TopologyRepository {
                 },
             )
         }
+        val ruleCards = customRuleCards + defaultRuleCard
+        val shownRuleIds = ruleCards.mapTo(HashSet()) { it.id }
 
-        /* ②→③ 连线：只连**两张卡都真的显示出来**的边。
-           目标落进「+N 更多」胶囊里的规则不连线 —— 否则线会指向一个不存在的框。
-           （规则本身没画出来的情况已经被 take(ruleCap) 排除了。） */
-        val outEdges = enabled.take(ruleCap).mapNotNull { rule ->
-            val target = outboundCard(rule.outbound, nodeById, mainId, allNodeIds)
-                ?: return@mapNotNull null
-            if (target.id !in shownOutIds) return@mapNotNull null
-            TopologyEdge(
-                fromId = "ru-${rule.id}",
-                toId = target.id,
-                kind = target.kind,
-                dashed = target.kind == TopologyKind.MISSING,
+        /* ②→③ 连线：只连**两张卡都真的显示出来**的边。 */
+        val outEdges = ArrayList<TopologyEdge>()
+        if (mainCard != null && mainCard.id in shownOutIds) {
+            outEdges.add(
+                TopologyEdge(
+                    fromId = ID_DEFAULT_RULE,
+                    toId = mainCard.id,
+                    kind = mainCard.kind,
+                    dashed = mainCard.kind == TopologyKind.MISSING,
+                )
             )
         }
+        enabled.take((ruleCap - 1).coerceAtLeast(0)).forEach { rule ->
+            val target = outboundCard(rule.outbound, nodeById, mainId, allNodeIds) ?: return@forEach
+            if (target.id in shownOutIds) {
+                outEdges.add(
+                    TopologyEdge(
+                        fromId = "ru-${rule.id}",
+                        toId = target.id,
+                        kind = target.kind,
+                        dashed = target.kind == TopologyKind.MISSING,
+                    )
+                )
+            }
+        }
 
-        /* ① 层：实时连接。规则卡没画出来的（落进「+N 更多」）不连线，
-           理由跟上面一样 —— 线不能指向一个不存在的框。 */
-        val inbound = buildInbound(clash, enabled, ruleCards.mapTo(HashSet()) { it.id })
+        /* ① 层：实时连接。未命中特定自定义规则的流量，自动归属并连线到默认分流卡片！ */
+        val inbound = buildInbound(clash, enabled, shownRuleIds)
 
         return TopologySnapshot(
             rules = ruleCards,
-            ruleOverflow = (enabled.size - ruleCap).coerceAtLeast(0),
+            ruleOverflow = (enabled.size - (ruleCap - 1).coerceAtLeast(0)).coerceAtLeast(0),
             outbounds = shownOut,
             outboundOverflow = outOver,
             edges = inbound.edges + outEdges,
@@ -438,6 +461,13 @@ object TopologyRepository {
         val all = accs.map { (host, acc) ->
             val dominantId = acc.trafficByRule.maxByOrNull { it.value }?.key
             val rule = dominantId?.let { ruleById[it] }
+            val ruleCardId = if (rule != null && "ru-${rule.id}" in shownRuleIds) {
+                "ru-${rule.id}"
+            } else if (ID_DEFAULT_RULE in shownRuleIds) {
+                ID_DEFAULT_RULE
+            } else {
+                null
+            }
             TopologyInbound(
                 id = "in-$host",
                 label = host,
@@ -445,8 +475,8 @@ object TopologyRepository {
                 appPackage = acc.app,
                 upload = acc.upload,
                 download = acc.download,
-                ruleCardId = rule?.let { "ru-${it.id}" }?.takeIf { it in shownRuleIds },
-                ruleName = rule?.displayName(),
+                ruleCardId = ruleCardId,
+                ruleName = rule?.displayName() ?: app.getString(R.string.topology_default_route),
                 matchKind = dominantId?.let { acc.kindByRule[it] } ?: acc.fallbackKind,
                 startAt = acc.earliestStart,
                 connectionCount = acc.count,

@@ -14,6 +14,16 @@
     <string name="quick_toggle">切换</string>
     <string name="quick_enable">启用</string>
     <string name="quick_disable">禁用</string>
+    <string name="search_hint">搜索节点、协议或服务器地址</string>
+    <string name="empty_nodes_hint">暂无可用节点</string>
+    <string name="clear_search">清除</string>
+    <string name="filter_all">全部</string>
+    <string name="action_test_all">测速</string>
+    <string name="action_sort">排序</string>
+    <string name="sort_origin">默认排序</string>
+    <string name="sort_by_delay">按延迟排序（快到慢）</string>
+    <string name="sort_by_name">按名称排序（A-Z）</string>
+    <string name="testing_progress">正在测速...</string>
     <!-- group -->
     <string name="group_name">分组名</string>
     <string name="group_update">更新</string>
@@ -513,7 +523,9 @@
     <string name="topology_loading">正在读取数据…</string>
     <string name="topology_layer_inbound">入站 · 实时连接</string>
     <string name="topology_layer_rule">路由规则 · 仅启用</string>
-    <string name="topology_layer_out">出站 · 由规则推导</string>
+    <string name="topology_default_route">默认分流</string>
+    <string name="topology_default_route_sub">兜底 · 全局流量</string>
+    <string name="topology_layer_out">出站节点 · 规则引申</string>
     <string name="topology_inbound_idle">暂无活动连接</string>
     <string name="topology_inbound_empty">没有可显示的连接</string>
     <string name="topology_clash_disabled">未开启 Clash API</string>
@@ -573,5 +585,10 @@
     <string name="topology_add_warn">当前是订阅组「%1$s」，订阅组只读 —— 新节点将落到第一个普通分组</string>
     <string name="topology_add_section">手动添加 · %1$d 种</string>
     <string name="topology_add_note">扫码、剪贴板和文件导入会自动识别协议，无需手动选类型。「新建分组」「更新全部订阅」在左上角分组菜单里，此处不重复。</string>
+    <string name="route_display_on_home">展示在主页拓扑图</string>
+    <string name="route_display_on_home_summary">在主页拓扑流中直观展示此规则及链路</string>
+    <string name="route_default_title">默认分流 (Default)</string>
+    <string name="route_default_desc">内置兜底 · 未命中自定义规则的所有流量均走此规则</string>
+    <string name="route_default_cant_delete">默认兜底规则不可删除</string>
     <!-- == /Spider new-UI topology == -->
 </resources>

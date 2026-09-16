@@ -79,6 +79,7 @@ class SagerNet : Application(),
         }
 
         if (isMainProcess) {
+            DataStore.initGlobal()
             Theme.apply(this)
             Theme.applyNightTheme()
             runOnDefaultDispatcher {

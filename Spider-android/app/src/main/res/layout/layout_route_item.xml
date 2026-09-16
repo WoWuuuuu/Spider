@@ -56,6 +56,17 @@
                 app:srcCompat="@drawable/ic_file_cloud_queue" />
 
             <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/display_on_home"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/route_display_on_home"
+                android:focusable="true"
+                android:padding="12dp"
+                app:srcCompat="@drawable/ic_visibility" />
+
+            <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/edit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

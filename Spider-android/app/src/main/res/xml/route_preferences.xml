@@ -6,6 +6,12 @@
         app:key="routeName"
         app:title="@string/route_name"
         app:useSimpleSummaryProvider="true" />
+    <SwitchPreference
+        app:icon="@drawable/ic_visibility"
+        app:key="routeDisplayOnHome"
+        app:title="@string/route_display_on_home"
+        app:summary="@string/route_display_on_home_summary"
+        app:defaultValue="true" />
     <moe.matsuri.nb4a.ui.EditConfigPreference
         app:icon="@drawable/ic_baseline_layers_24"
         app:key="serverConfig"

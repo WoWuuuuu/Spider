@@ -85,7 +85,8 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     }
 
     var appTLSVersion by configurationStore.string(Key.APP_TLS_VERSION)
-    var enableClashAPI by configurationStore.boolean(Key.ENABLE_CLASH_API)
+    var clashApiDefaultSet by configurationStore.boolean("clashApiDefaultSet") { false }
+    var enableClashAPI by configurationStore.boolean(Key.ENABLE_CLASH_API) { true }
     var showBottomBar by configurationStore.boolean(Key.SHOW_BOTTOM_BAR)
 
     var allowInsecureOnRequest by configurationStore.boolean(Key.ALLOW_INSECURE_ON_REQUEST)
@@ -133,6 +134,10 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     fun initGlobal() {
         if (configurationStore.getString(Key.MIXED_PORT) == null) {
             mixedPort = mixedPort
+        }
+        if (!clashApiDefaultSet) {
+            enableClashAPI = true
+            clashApiDefaultSet = true
         }
     }
 
@@ -229,6 +234,26 @@ object DataStore : OnPreferenceDataStoreChangeListener {
     var routeOutbound by profileCacheStore.stringToInt(Key.ROUTE_OUTBOUND)
     var routeOutboundRule by profileCacheStore.long(Key.ROUTE_OUTBOUND + "Long")
     var routePackages by profileCacheStore.string(Key.ROUTE_PACKAGES)
+    var routeDisplayOnHome by profileCacheStore.boolean(Key.ROUTE_DISPLAY_ON_HOME) { true }
+
+    var hiddenHomeRuleIdsRaw by configurationStore.string("hiddenHomeRuleIds") { "" }
+
+    fun isRuleShownOnHome(ruleId: Long): Boolean {
+        if (ruleId <= 0L) return true
+        val set = hiddenHomeRuleIdsRaw.split(',').filter { it.isNotBlank() }.toSet()
+        return ruleId.toString() !in set
+    }
+
+    fun setRuleShownOnHome(ruleId: Long, shown: Boolean) {
+        if (ruleId <= 0L) return
+        val set = hiddenHomeRuleIdsRaw.split(',').filter { it.isNotBlank() }.toMutableSet()
+        if (shown) {
+            set.remove(ruleId.toString())
+        } else {
+            set.add(ruleId.toString())
+        }
+        hiddenHomeRuleIdsRaw = set.joinToString(",")
+    }
 
     var frontProxy by profileCacheStore.long(Key.GROUP_FRONT_PROXY + "Long")
     var landingProxy by profileCacheStore.long(Key.GROUP_LANDING_PROXY + "Long")
