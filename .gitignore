@@ -55,4 +55,20 @@ app/libs/
 *.aar
 *.jar
 *.apk
+*.idsig
+dist/
+.trae/
+.workbuddy-ai/
+_debug_packages.ps1
+_libbox_rebuild_tmp/
+_migration_preserve/
+_phase0_final.ps1
+_phase0_rebuild.ps1
+_save_before_delete/
+gomobile-src/
+libbox.so
+libneko/
+migrate.ps1
+sing-box-matsuri/
+tools/
 

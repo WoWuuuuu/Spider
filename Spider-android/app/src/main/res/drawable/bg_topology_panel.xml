@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  右侧滑入的设置面板底板（原型 .panel）。
+
+  只有**左边两角**是圆的 —— 右边贴屏幕边缘，四角都圆会在右侧留下两个缺口
+  （和 bg_topology_sheet.xml 同样的理由，只是方向相反）。
+
+  底色用 ?android:colorBackground 而不是写死颜色：面板里装的是
+  SettingsPreferenceFragment，它的 Preference 列表本来就吃主题背景色，
+  写死颜色会和列表里的 item 背景对不上。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="?android:colorBackground" />
+    <corners
+        android:topLeftRadius="20dp"
+        android:bottomLeftRadius="20dp" />
+</shape>

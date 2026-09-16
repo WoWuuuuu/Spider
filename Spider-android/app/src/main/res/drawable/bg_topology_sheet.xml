@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ① 入站详情浮层的底板：只有**上方两角**是圆的。
+  底部贴屏幕边缘，如果四个角都圆，底部会出现两个难看的缺口。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="?android:colorBackground" />
+    <corners
+        android:topLeftRadius="18dp"
+        android:topRightRadius="18dp" />
+</shape>

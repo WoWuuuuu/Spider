@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  分组胶囊底板（原型 .sub-pill）。
+
+  ⚠ 这里**刻意用中性的半透明灰**（#1F808080 / #33808080）而不是 `?attr/colorPrimary`：
+  项目有 21 套主题、每套还要配一个 dialog 主题，用主题色会让这个胶囊在不同配色下
+  变成完全不同的东西（有的主题 primary 是亮黄，白字直接看不清）。
+  中性灰在 21 套配色 + 明暗两套下表现一致，且和 ConfigurationFragment 里那个
+  分隔线用的是同一个色号（#20808080），算是对齐既有做法。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#1F808080" />
+    <corners android:radius="999dp" />
+    <stroke
+        android:width="0.5dp"
+        android:color="#33808080" />
+</shape>

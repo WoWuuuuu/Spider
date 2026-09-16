@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  调试包专用清单 —— 只影响 debug 变体，release 一行都不变。
+
+  目的：让 debug 包在桌面上的名字跟「正在用的那个 Spider」区分开。
+  applicationId 已经在 app/build.gradle.kts 里加了 .newui 后缀（两者装在一起互不覆盖），
+  但**应用名**来自 @string/app_name，光靠包名区分不了 —— 桌面上会是两个一模一样的 "Spider"。
+
+  为什么不用 src/debug/res/values/strings.xml 覆盖 app_name：
+  app_name 在 values / values-fa / values-ru / values-uk 四处都有定义，
+  资源覆盖只在默认语言下生效，波斯语 / 俄语 / 乌克兰语系统上会被语言目录再盖回去。
+  直接写清单属性则与语言无关。
+
+  tools:replace 是必需的：主清单里 application 已经有 android:label，
+  合并器遇到同属性冲突会报错，必须显式声明「以我为准」。
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:label="Spider 新界面"
+        tools:replace="android:label" />
+
+</manifest>

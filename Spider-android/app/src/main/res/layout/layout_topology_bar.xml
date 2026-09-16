@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  新主页的顶栏（原型 .topbar）。
+
+  ⚠ 这个布局**不是**被 include 进来的，而是在 TopologyFragment.onViewCreated 里
+  `toolbar.addView(...)` 塞进 MaterialToolbar 的。原因见 layout_topology.xml 的注释：
+  API 35+ 的状态栏内边距是 ThemedActivity 打在 R.id.appbar 上的，
+  只有留在 AppBarLayout 里才拿得到那层 padding，自己另起一行会被状态栏压住。
+
+  三件事，从左到右：
+    · topology_group_pill  当前分组名 + ▾ —— 点开分组下拉（取代旧抽屉里的分组入口）
+    · topology_power       ⏻ 启动 / 停止 VPN，和 MainActivity 的 FAB 是同一个流程
+    · topology_settings    ⚙ 打开右侧滑入的设置面板（取代旧抽屉）
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp">
+
+    <LinearLayout
+        android:id="@+id/topology_group_pill"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_topology_pill"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="12dp"
+        android:paddingTop="6dp"
+        android:paddingEnd="6dp"
+        android:paddingBottom="6dp">
+
+        <!-- maxWidth 是必需的：分组名是用户自己起的，不加限制会把两个按钮顶出屏幕 -->
+        <TextView
+            android:id="@+id/topology_group_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxWidth="190dp"
+            android:singleLine="true"
+            android:text="@string/topology_group_fallback"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:textColor="?android:textColorPrimary" />
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:layout_marginStart="2dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_topology_arrow_drop_down_24" />
+
+    </LinearLayout>
+
+    <!-- 撑开，把两个按钮顶到最右 -->
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1" />
+
+    <ImageButton
+        android:id="@+id/topology_power"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/topology_power"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_topology_power_24" />
+
+    <ImageButton
+        android:id="@+id/topology_settings"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/topology_settings"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_action_settings" />
+
+</LinearLayout>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  下拉里的水平分隔线（原型：「水平分隔线：上方=已导入，下方=导入方式」）。
+  色号 #20808080 和 ConfigurationFragment 里那根分隔线一致，明暗两套主题下都能看。
+-->
+<View xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="1dp"
+    android:layout_marginTop="8dp"
+    android:layout_marginBottom="8dp"
+    android:background="#20808080" />

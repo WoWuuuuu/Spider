@@ -9,14 +9,11 @@ import android.os.Build
 import android.os.Bundle
 import android.os.RemoteException
 import android.view.KeyEvent
-import android.view.MenuItem
 import androidx.activity.addCallback
-import androidx.annotation.IdRes
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceDataStore
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.navigation.NavigationView
 import com.google.android.material.snackbar.Snackbar
 import io.nekohasekai.sagernet.BuildConfig
 import io.nekohasekai.sagernet.GroupType
@@ -24,7 +21,6 @@ import io.nekohasekai.sagernet.Key
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.ISagerNetService
-import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
 import io.nekohasekai.sagernet.bg.SagerConnection
@@ -41,7 +37,6 @@ import io.nekohasekai.sagernet.fmt.PluginEntry
 import io.nekohasekai.sagernet.group.GroupInterfaceAdapter
 import io.nekohasekai.sagernet.group.GroupUpdater
 import io.nekohasekai.sagernet.ktx.alert
-import io.nekohasekai.sagernet.ktx.isPlay
 import io.nekohasekai.sagernet.ktx.isPreview
 import io.nekohasekai.sagernet.ktx.launchCustomTab
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
@@ -52,40 +47,31 @@ import moe.matsuri.nb4a.utils.Util
 
 class MainActivity : ThemedActivity(),
     SagerConnection.Callback,
-    OnPreferenceDataStoreChangeListener,
-    NavigationView.OnNavigationItemSelectedListener {
+    OnPreferenceDataStoreChangeListener {
 
     lateinit var binding: LayoutMainBinding
-    lateinit var navigation: NavigationView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         binding = LayoutMainBinding.inflate(layoutInflater)
         binding.fab.initProgress(binding.fabProgress)
-        if (themeResId !in intArrayOf(
-                R.style.Theme_SagerNet_Black
-            )
-        ) {
-            navigation = binding.navView
-            binding.drawerLayout.removeView(binding.navViewBlack)
-        } else {
-            navigation = binding.navViewBlack
-            binding.drawerLayout.removeView(binding.navView)
-        }
-        navigation.setNavigationItemSelectedListener(this)
-        binding.drawerLayout.setDrawerLockMode(androidx.drawerlayout.widget.DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+        /* 抽屉（`DrawerLayout` + 两个 `NavigationView`）2026-09-16 已从 layout_main.xml 整个删掉，
+           这里原来那段「按主题挑 navView / 锁死抽屉」的初始化跟着一起删。
+           新主页的导航在右侧设置面板里，不再有抽屉。 */
 
         if (savedInstanceState == null) {
-            displayFragmentWithId(R.id.nav_configuration)
+            navigateTo(DEST_HOME)
         }
         onBackPressedDispatcher.addCallback {
             if (supportFragmentManager.backStackEntryCount > 0) {
                 supportFragmentManager.popBackStack()
-            } else if (supportFragmentManager.findFragmentById(R.id.fragment_holder) is ConfigurationFragment) {
+            } else if (supportFragmentManager.findFragmentById(R.id.fragment_holder)
+                    .let { it is ConfigurationFragment || it is TopologyFragment }) {
+                // 新旧主页在返回键上行为一致：退到后台而不是回退到「自己」
                 moveTaskToBack(true)
             } else {
-                displayFragmentWithId(R.id.nav_configuration)
+                navigateTo(DEST_HOME)
             }
         }
 
@@ -94,7 +80,6 @@ class MainActivity : ThemedActivity(),
                 null
             )
         }
-        binding.stats.setOnClickListener { if (DataStore.serviceState.connected) binding.stats.testConnection() }
 
         setContentView(binding.root)
         changeState(BaseService.State.Idle)
@@ -105,8 +90,6 @@ class MainActivity : ThemedActivity(),
         if (intent?.action == Intent.ACTION_VIEW) {
             onNewIntent(intent)
         }
-
-        refreshNavMenu(DataStore.enableClashAPI)
 
         // sdk 33 notification
         if (Build.VERSION.SDK_INT >= 33) {
@@ -129,13 +112,11 @@ class MainActivity : ThemedActivity(),
         }
     }
 
-    fun refreshNavMenu(clashApi: Boolean) {
-        if (::navigation.isInitialized) {
-            navigation.menu.findItem(R.id.nav_traffic)?.isVisible = clashApi
-            // navigation.menu.findItem(R.id.nav_tuiguang)?.isVisible = !isPlay
-            navigation.menu.findItem(R.id.nav_tuiguang)?.isVisible = false
-        }
-    }
+    /* 这里原来有个 `refreshNavMenu(clashApi)` —— 抽屉里「流量」那一项的显示开关。
+       抽屉删掉（2026-09-16）之后它没有任何事可做，连同调用点一起删了：
+       调用方是 `SettingsPreferenceFragment` 切换 Clash API 时的那一句，
+       而新主页的 ① 层是在 `onStart` 里重新读 `DataStore.enableClashAPI` 再拉一次，
+       切完设置回到主页自然会刷新，不依赖这个回调。 */
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -195,7 +176,7 @@ class MainActivity : ThemedActivity(),
 
         onMainDispatcher {
 
-            displayFragmentWithId(R.id.nav_configuration)
+            navigateTo(DEST_HOME)
 
             MaterialAlertDialogBuilder(this@MainActivity).setTitle(R.string.subscription_import)
                 .setMessage(getString(R.string.subscription_import_message, name))
@@ -246,7 +227,7 @@ class MainActivity : ThemedActivity(),
         ProfileManager.createProfile(targetId, profile)
 
         onMainDispatcher {
-            displayFragmentWithId(R.id.nav_configuration)
+            navigateTo(DEST_HOME)
 
             snackbar(resources.getQuantityString(R.plurals.added, 1, 1)).show()
         }
@@ -308,55 +289,81 @@ class MainActivity : ThemedActivity(),
             .show()
     }
 
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        if (item.isChecked) binding.drawerLayout.closeDrawers() else {
-            return displayFragmentWithId(item.itemId)
-        }
-        return true
-    }
-
-
     @SuppressLint("CommitTransaction")
     fun displayFragment(fragment: ToolbarFragment) {
-        if (fragment is ConfigurationFragment) {
-            binding.stats.allowShow = true
+        /* 新主页（TopologyFragment）**不要** FAB：
+           `fab` 是 `ServiceButton`，它的点击就是 `connect/stop` —— 和顶栏那个 ⏻
+           **完全同一个功能**，两个入口同时出现只会让人不知道点哪个。
+
+           底部那条 `StatsBar`（`@id/stats`）已经**整个从布局里删掉**了（2026-09-16 用户要求）：
+           新主页自己有一行摘要、① 层也有上下行，旧流量条是重复信息。
+           顺带记一笔它以前为什么其实一直是「关不掉」的 ——
+           `StatsBar.YourBehavior.slideDown` 开头就是 `if (!getAllowShow()) return`，
+           而 `allowShow` 正是想关它时要置 false 的那个标志，
+           所以 `allowShow = false` + `performHide()` 是**互相抵消**的，什么都不会发生。 */
+        if (fragment is TopologyFragment) {
+            binding.fab.hide()
+        } else if (fragment is ConfigurationFragment || DataStore.showBottomBar) {
             binding.fab.show()
-        } else if (!DataStore.showBottomBar) {
-            binding.stats.allowShow = false
-            binding.stats.performHide()
+        } else {
             binding.fab.hide()
         }
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_holder, fragment)
             .commitAllowingStateLoss()
-        binding.drawerLayout.closeDrawers()
     }
 
-    fun displayFragmentWithId(@IdRes id: Int): Boolean {
-        when (id) {
-            R.id.nav_configuration -> {
-                displayFragment(ConfigurationFragment())
+    /**
+     * 跳到某个页面。
+     *
+     * 参数**不再是 `@IdRes`**：这些目标原本是 `res/menu/main_drawer_menu.xml` 里的
+     * `nav_*` id，抽屉删掉（2026-09-16）之后菜单跟着删了，id 也就不存在了。
+     * 但「跳页」这件事本身跟菜单无关 —— [TopologyFragment] 也要用它跳路由页 ——
+     * 所以改成一组自有的常量，语义反而更准。
+     *
+     * **目前只有 [DEST_HOME] 有调用方**（`ToolbarFragment` 的返回箭头）。
+     * 其余分支是**故意留着**的导航表，不是漏删的死代码：
+     *   · [DEST_ROUTE] / [DEST_TOOLS] / [DEST_LOGCAT] / [DEST_ABOUT] 现在由
+     *     设置面板里的 `SettingsPreferenceFragment` 直接 replace `fragment_holder` 到达
+     *     （`SettingsPreferenceFragment.kt:58/66/74/90`），不经过这里；
+     *   · [DEST_FAQ] / [DEST_PROMOTION] 当前**确实没有入口** ——
+     *     前者是上游文档站（`AboutFragment` 里另有几个同域链接，不算断），
+     *     后者在旧抽屉里本来就是 `isVisible = false`。留着是为了以后加回来时不用重写。
+     */
+    fun navigateTo(dest: Int): Boolean {
+        when (dest) {
+            DEST_HOME -> {
+                /* 主页**只有**新 UI 一种（2026-09-16 用户拍板：新界面转正，旧主页不再出现）。
+                   原来这里是一个 `DataStore.enableNewUI` 三元分支，开关已经拆掉了。
+
+                   ⚠ `ConfigurationFragment` 这个类**没有删、也不能删** —— 它现在以
+                   「节点选择器」的身份还在服役：
+                     · `ProfileSelectActivity`（长按 ② 规则卡换出口）
+                     · `SwitchActivity`（快捷方式里的「切换节点」）
+                   删掉它会把这两条路一起打断。这里只是不再让「主页」这个位置落到它身上。 */
+                displayFragment(TopologyFragment())
             }
 
-            R.id.nav_route -> displayFragment(RouteFragment())
-            R.id.nav_settings -> displayFragment(SettingsFragment())
-            R.id.nav_traffic -> displayFragment(WebviewFragment())
-            R.id.nav_tools -> displayFragment(ToolsFragment())
-            R.id.nav_logcat -> displayFragment(LogcatFragment())
-            R.id.nav_faq -> {
+            DEST_ROUTE -> displayFragment(RouteFragment())
+            DEST_SETTINGS -> displayFragment(SettingsFragment())
+            DEST_TRAFFIC -> displayFragment(WebviewFragment())
+            DEST_TOOLS -> displayFragment(ToolsFragment())
+            DEST_LOGCAT -> displayFragment(LogcatFragment())
+            DEST_FAQ -> {
                 launchCustomTab("https://matsuridayo.github.io/")
                 return false
             }
 
-            R.id.nav_about -> displayFragment(AboutFragment())
-            R.id.nav_tuiguang -> {
+            DEST_ABOUT -> displayFragment(AboutFragment())
+            DEST_PROMOTION -> {
                 launchCustomTab("https://neko-box.pages.dev/喵")
                 return false
             }
 
             else -> return false
         }
-        navigation.menu.findItem(id).isChecked = true
+        /* 这里原来还有一句 `navigation.menu.findItem(id).isChecked = true` ——
+           把抽屉里对应的那一项标成选中。抽屉删掉（2026-09-16）之后没有对象了。 */
         return true
     }
 
@@ -368,7 +375,11 @@ class MainActivity : ThemedActivity(),
         DataStore.serviceState = state
 
         binding.fab.changeState(state, DataStore.serviceState, animate)
-        binding.stats.changeState(state)
+        // 新主页顶栏的 ⏻ 也要跟着变。DataStore.serviceState 是个普通字段（DataStore.kt:28），
+        // 不是持久化项、没有变更监听可注册，只能由这里推一下。
+        // 这里不是新主页时 findFragmentById 会返回别的类型（或 null），安全跳过。
+        (supportFragmentManager.findFragmentById(R.id.fragment_holder) as? TopologyFragment)
+            ?.onServiceStateChanged()
         if (msg != null) snackbar(getString(R.string.vpn_error, msg)).show()
     }
 
@@ -406,9 +417,10 @@ class MainActivity : ThemedActivity(),
 
     // may NOT called when app is in background
     // ONLY do UI update here, write DB in bg process
-    override fun cbSpeedUpdate(stats: SpeedDisplayData) {
-        binding.stats.updateSpeed(stats.txRateProxy, stats.rxRateProxy)
-    }
+    /* `cbSpeedUpdate` 不再覆写：它的唯一去处是底部那条 `StatsBar.updateSpeed()`，
+       而那条已经被整个删掉了。`SagerConnection.Callback` 里它本来就有空的默认实现
+       （bg/SagerConnection.kt:43），不覆写 = 收下就丢掉，不会漏掉别的逻辑。
+       内核侧照旧按 connectionId 广播，这一点没动。 */
 
     override fun cbTrafficUpdate(data: TrafficData) {
         runOnDefaultDispatcher {
@@ -456,28 +468,30 @@ class MainActivity : ThemedActivity(),
         connection.disconnect(this)
     }
 
+    /* 这里原来还有 DPAD_LEFT / DPAD_RIGHT 开合抽屉的分支（遥控器/键盘导航用）。
+       抽屉删掉（2026-09-16）之后它们没有对象了，一起删掉 ——
+       剩下的「把按键转交给当前 Fragment」这条链保持不变。 */
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
-        when (keyCode) {
-            KeyEvent.KEYCODE_DPAD_LEFT -> {
-                if (super.onKeyDown(keyCode, event)) return true
-                binding.drawerLayout.open()
-                navigation.requestFocus()
-            }
-
-            KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                if (binding.drawerLayout.isOpen) {
-                    binding.drawerLayout.close()
-                    return true
-                }
-            }
-        }
-
         if (super.onKeyDown(keyCode, event)) return true
-        if (binding.drawerLayout.isOpen) return false
 
         val fragment =
             supportFragmentManager.findFragmentById(R.id.fragment_holder) as? ToolbarFragment
         return fragment != null && fragment.onKeyDown(keyCode, event)
+    }
+
+    companion object {
+        /* 页面目标。**刻意不用 `R.id.nav_*`** —— 那些 id 来自
+           `res/menu/main_drawer_menu.xml`（抽屉菜单），菜单已经跟着抽屉一起删了。
+           「跳页」这件事跟菜单无关，所以自带一组常量，见 [navigateTo]。 */
+        const val DEST_HOME = 0
+        const val DEST_ROUTE = 1
+        const val DEST_SETTINGS = 2
+        const val DEST_TRAFFIC = 3
+        const val DEST_TOOLS = 4
+        const val DEST_LOGCAT = 5
+        const val DEST_FAQ = 6
+        const val DEST_ABOUT = 7
+        const val DEST_PROMOTION = 8
     }
 
 }

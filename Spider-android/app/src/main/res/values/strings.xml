@@ -589,4 +589,93 @@
     <string name="settings_group_connection">Connection &amp; Inbound</string>
     <string name="settings_group_general">General &amp; Appearance</string>
     <string name="settings_group_advanced">Advanced Options</string>
+
+    <!-- 新主页（三层拓扑，实验）。
+         默认值一律英文，与全表一致；中文在 values-zh-rCN，繁中在 zh-rHK / zh-rTW。
+         lint.xml:31 把 MissingTranslation 设成 ignore，所以缺语种不会挂构建 ——
+         之所以还是把 19 个语种补齐，纯粹是不想让新主页在非中文环境下露中文。 -->
+    <string name="topology_loading">Loading data…</string>
+    <string name="topology_layer_inbound">Inbound · Live connections</string>
+    <string name="topology_layer_rule">Routing rules · Enabled only</string>
+    <string name="topology_layer_out">Outbound · Derived from rules</string>
+    <string name="topology_inbound_idle">No active connections</string>
+    <string name="topology_inbound_empty">No connections to show</string>
+    <string name="topology_clash_disabled">Clash API is off</string>
+    <string name="topology_clash_unavailable">Core not connected</string>
+    <string name="topology_rule_empty">No enabled rules</string>
+    <string name="topology_classic_home">Classic home (groups &amp; subscriptions)</string>
+    <string name="topology_out_empty">No nodes yet · tap ＋ in the group menu to create one</string>
+    <string name="topology_node_missing">Node deleted</string>
+    <string name="topology_delay_unknown" translatable="false">--</string>
+    <string name="topology_more">+%1$d more</string>
+    <string name="topology_match_geosite">Domain set</string>
+    <string name="topology_match_geoip">IP set</string>
+    <string name="topology_match_domain">Domain</string>
+    <string name="topology_match_app">App</string>
+    <string name="topology_match_ip">Destination IP</string>
+    <string name="topology_match_port">Port</string>
+    <string name="topology_match_network">Network type</string>
+    <string name="topology_match_protocol">Protocol</string>
+    <string name="topology_match_builtin">Built-in rule</string>
+    <string name="topology_match_unknown">Unrecognised</string>
+
+    <!-- ① 入站详情浮层（阶段 4）。标签与值之间用「：」拼，所以这里只放标签。 -->
+    <string name="topology_detail_endpoint">Address</string>
+    <string name="topology_detail_app">App</string>
+    <string name="topology_detail_traffic">Traffic</string>
+    <string name="topology_detail_rule">Matched rule</string>
+    <string name="topology_detail_start">Established</string>
+    <string name="topology_detail_note">Traffic is the cumulative total for this connection, not a live rate.</string>
+    <string name="topology_detail_close">Close</string>
+    <string name="topology_detail_no_app">System process</string>
+    <string name="topology_detail_no_rule">No rule matched (kernel default outbound)</string>
+    <string name="topology_detail_copied">Copied %1$s</string>
+    <string name="topology_detail_count">%1$d connections in total</string>
+    <string name="topology_detail_ago_seconds">%1$d s ago</string>
+    <string name="topology_detail_ago_minutes">%1$d min ago</string>
+    <string name="topology_detail_ago_hours">%1$d h ago</string>
+    <string name="topology_detail_ago_days">%1$d d ago</string>
+    <string name="topology_detail_clock">%1$s (%2$s)</string>
+
+    <!-- 底部那行小字（buildSummary / inboundSummary）。
+         以前是写死在 Kotlin 里的中文，提取出来才可翻译。
+         中间的「 · 」分隔符留在代码里，不进资源 —— 它不属于任何一种语言。 -->
+    <string name="topology_summary_rules">%1$d rules enabled</string>
+    <string name="topology_summary_rules_more">(showing %1$d, +%2$d more)</string>
+    <string name="topology_summary_outbounds">%1$d outbounds</string>
+    <string name="topology_summary_edges">%1$d links</string>
+    <string name="topology_summary_nodes">%1$d nodes total</string>
+    <string name="topology_inbound_live">%1$d live connections</string>
+    <string name="topology_pull_refresh">Pull to refresh</string>
+    <string name="topology_inbound_disabled_hint">Clash API is off — layer ① needs it (Settings ▸ Routing ▸ Clash API)</string>
+    <string name="topology_inbound_unavailable_hint">Cannot reach the core — make sure the VPN is running; if it is, check whether port 9090 is taken by another app</string>
+
+    <!-- 长按规则卡换出口：选完之后的那一步写库失败也要说一声 -->
+    <string name="topology_egress_failed">The rule no longer exists and cannot be changed</string>
+
+    <!-- 选节点。③ 层是路由图不是节点列表，所以「选节点」必须有一条自己的入口。
+         点 ⏻ 却没选节点时不能默默失败（内核会起来再自杀），要拦住并把人送过去。 -->
+    <string name="topology_pick_node">Select node</string>
+    <string name="topology_need_node">No node selected — pick one first</string>
+
+    <!-- 顶栏（原型 .topbar）：分组胶囊 + ⏻ + ⚙ -->
+    <string name="topology_group_fallback">Group</string>
+    <string name="topology_power">Start / stop</string>
+    <string name="topology_settings">Settings</string>
+    <string name="topology_settings_close">Close settings</string>
+
+    <!-- 分组下拉（原型 #subDrop）。「新建分组 / 更新全部订阅」按原型放在这里，不重复放别处 -->
+    <string name="topology_group_header">Imported · Groups</string>
+    <string name="topology_group_local">Local group</string>
+
+    <!-- 「添加节点」面板（原型 #addPanel） -->
+    <string name="topology_add_title">Add node</string>
+    <string name="topology_add_target">Target group: %1$s</string>
+    <string name="topology_add_no_group">(no group available)</string>
+    <string name="topology_add_warn">The current group “%1$s” is a read-only subscription — new nodes will go to the first normal group</string>
+    <string name="topology_add_section">Manual · %1$d types</string>
+    <string name="topology_add_note">QR code, clipboard and file import detect the protocol automatically — no need to pick a type. “Create group” and “Update all subscriptions” live in the group menu at the top left.</string>
+    <!-- add_profile_menu.xml 里 VLESS 是字面量，没有对应字符串资源，这里补一个。
+         协议名跟 action_shadowsocks / action_shadowtls 一样不翻译。 -->
+    <string name="topology_proto_vless" translatable="false">VLESS</string>
 </resources>

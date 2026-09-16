@@ -24,6 +24,18 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
     private lateinit var globalCustomConfig: EditConfigPreference
 
+    /**
+     * 五个跳转链接用的 FragmentManager。
+     *
+     * 必须是 **Activity 的**，不能用 `parentFragmentManager` —— 这个 Fragment 现在有两个宿主：
+     *   1. `MainActivity` 的 `R.id.fragment_holder`（抽屉里的「设置」）；
+     *   2. `TopologyFragment` 设置面板里的 `R.id.topology_panel_host`（childFragmentManager）。
+     *
+     * 情况 2 下 `parentFragmentManager` 指向面板的 child manager，而 `R.id.fragment_holder`
+     * 不在那棵视图树里，`replace` 会直接抛「No view found for id 0x…」。
+     * 情况 1 下两者本来就是同一个对象，所以换成 Activity 的**行为完全不变**。
+     */
+    private val linkFragmentManager get() = requireActivity().supportFragmentManager
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -42,7 +54,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         addPreferencesFromResource(R.xml.global_preferences)
 
         findPreference<Preference>("routingRulesLink")?.setOnPreferenceClickListener {
-            parentFragmentManager.beginTransaction()
+            linkFragmentManager.beginTransaction()
                 .replace(R.id.fragment_holder, RouteFragment())
                 .addToBackStack(null)
                 .commit()
@@ -50,7 +62,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
 
         findPreference<Preference>("backupAndToolsLink")?.setOnPreferenceClickListener {
-            parentFragmentManager.beginTransaction()
+            linkFragmentManager.beginTransaction()
                 .replace(R.id.fragment_holder, ToolsFragment())
                 .addToBackStack(null)
                 .commit()
@@ -58,7 +70,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
 
         findPreference<Preference>("systemLogsLink")?.setOnPreferenceClickListener {
-            parentFragmentManager.beginTransaction()
+            linkFragmentManager.beginTransaction()
                 .replace(R.id.fragment_holder, LogcatFragment())
                 .addToBackStack(null)
                 .commit()
@@ -66,7 +78,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
 
         findPreference<Preference>("clashDashboardLink")?.setOnPreferenceClickListener {
-            parentFragmentManager.beginTransaction()
+            linkFragmentManager.beginTransaction()
                 .replace(R.id.fragment_holder, WebviewFragment())
                 .addToBackStack(null)
                 .commit()
@@ -74,7 +86,7 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
 
         findPreference<Preference>("aboutLink")?.setOnPreferenceClickListener {
-            parentFragmentManager.beginTransaction()
+            linkFragmentManager.beginTransaction()
                 .replace(R.id.fragment_holder, AboutFragment())
                 .addToBackStack(null)
                 .commit()
@@ -187,7 +199,9 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
 
         enableClashAPI.setOnPreferenceChangeListener { _, newValue ->
             clashDashboard?.isVisible = newValue as Boolean
-            (activity as MainActivity?)?.refreshNavMenu(newValue as Boolean)
+            /* 这里原来还有一句 `refreshNavMenu(newValue)` —— 开关抽屉里「流量」那一项用的。
+               抽屉 2026-09-16 删掉了，那个回调也一起删了。
+               新主页的 ① 层在 `onStart` 里重新读 `DataStore.enableClashAPI`，不需要额外通知。 */
             needReload()
             true
         }

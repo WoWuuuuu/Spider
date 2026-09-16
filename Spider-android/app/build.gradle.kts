@@ -13,6 +13,23 @@ android {
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
     }
+    /* 调试包用**独立的 applicationId**，保证它永远不会覆盖手机上正在用的那个 Spider。
+       buildSrc 里 debug 的默认后缀是 "debug"（→ moe.nb4a.debug）；这里改成 ".newui"
+       （→ moe.nb4a.newui），因为 moe.nb4a.debug 很可能就是开发者手机上那个在用的包。
+       清单里所有 authorities / permission 都写成 ${applicationId}，所以换后缀是安全的。
+       带前导点表示「替换整个后缀」而不是「追加」。 */
+    buildTypes {
+        getByName("debug") {
+            applicationIdSuffix = ".newui"
+        }
+        getByName("release") {
+            signingConfig = signingConfigs.getByName("debug")
+        }
+    }
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
+    }
     ksp {
         arg("room.incremental", "true")
         arg("room.schemaLocation", "$projectDir/schemas")

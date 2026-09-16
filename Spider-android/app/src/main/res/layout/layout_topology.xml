@@ -1,0 +1,395 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  新主页（三层拓扑）的容器。
+  结构刻意与 layout_route.xml 保持一致：CoordinatorLayout + 竖排 LinearLayout + include layout_appbar，
+  这样 ToolbarFragment 里 `view.findViewById(R.id.toolbar)` 和抽屉/返回键行为与其它页面完全一致。
+
+  ⚠ include layout_appbar 这一句**不能删**，有两个硬依赖：
+    1. ToolbarFragment 里 `lateinit var toolbar` 靠 `findViewById(R.id.toolbar)` 赋值，删了直接崩；
+    2. ThemedActivity 在 API 35+ 把状态栏内边距打在 `findViewById(R.id.appbar)` 上。
+       顶栏如果自己另起一行放在 AppBarLayout 外面，就会被状态栏压住。
+  所以顶栏（layout_topology_bar.xml）是运行时 addView 进 Toolbar 的，不是 include 进来的。
+
+  主体是两层叠起来的自绘 View：
+    · TopologyView        卡片 + 连线（数据变才重绘）
+    · TopologyParticleView 流动的粒子（每帧只重绘这一层）
+  分成两个 View 是为了让每帧的动画不去重绘卡片层 —— 卡片层每帧要跑十几次 drawText，
+  而 drawText 带 TextUtils.ellipsize 的文本测量，代价远大于画几个圆点。
+  粒子层不设 clickable，触摸事件会正常落到下面的卡片层。
+
+  外面套 SwipeRefreshLayout：阶段 3 **只做手动下拉刷新**，不做自动轮询（用户明确关注能耗）。
+  自绘 View 本身不滚动，所以下拉手势不会被它吃掉。
+
+  底部留一行小字，用来核对「卡片数量 / 名称 / 启用状态」和旧主页是否逐项一致。
+-->
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <include
+            layout="@layout/layout_appbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/topology_refresh"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <io.nekohasekai.sagernet.ui.topology.TopologyView
+                    android:id="@+id/topology_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <io.nekohasekai.sagernet.ui.topology.TopologyParticleView
+                    android:id="@+id/topology_particles"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:clickable="false"
+                    android:focusable="false" />
+
+            </FrameLayout>
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <TextView
+            android:id="@+id/topology_summary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="3dp"
+            android:paddingHorizontal="14dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="10dp"
+            android:text="@string/topology_loading"
+            android:textAppearance="?android:textAppearanceSmall"
+            android:textColor="?android:textColorSecondary" />
+
+    </LinearLayout>
+
+    <!--
+      ① 入站连接的详情浮层。
+
+      **刻意用「同一布局里的一层」而不是 Dialog / 新 Fragment**：
+      需求是「不重建主屏、不丢失已显示信息」—— 弹 Dialog 或换 Fragment 都会走一遍
+      生命周期，下拉刷新拿到的实时连接就没了。放在同一棵视图树里，关掉即可复原。
+
+      点遮罩也能关（`clickable=true` 吃掉事件 + Fragment 里设点击监听），返回键也能关
+      （见 TopologyFragment 的 OnBackPressedCallback）。
+    -->
+    <FrameLayout
+        android:id="@+id/topology_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#88000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/topology_overlay_sheet"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="@drawable/bg_topology_sheet"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="18dp"
+            android:paddingBottom="20dp">
+
+            <TextView
+                android:id="@+id/overlay_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="middle"
+                android:singleLine="true"
+                android:textAppearance="?android:textAppearanceMedium"
+                android:textColor="?android:textColorPrimary"
+                android:textIsSelectable="true" />
+
+            <TextView
+                android:id="@+id/overlay_endpoint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="middle"
+                android:singleLine="true"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:textColor="?android:textColorSecondary"
+                android:textIsSelectable="true" />
+
+            <TextView
+                android:id="@+id/overlay_app"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:textColor="?android:textColorSecondary" />
+
+            <TextView
+                android:id="@+id/overlay_traffic"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:textColor="?android:textColorSecondary" />
+
+            <TextView
+                android:id="@+id/overlay_rule"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:textColor="?android:textColorSecondary" />
+
+            <TextView
+                android:id="@+id/overlay_start"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:textColor="?android:textColorSecondary" />
+
+            <!-- 说清楚这是累计值。用户已经问过「实时数据」这件事，不能含糊。 -->
+            <TextView
+                android:id="@+id/overlay_note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:text="@string/topology_detail_note"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:textColor="?android:textColorSecondary" />
+
+            <Button
+                android:id="@+id/overlay_close"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="@string/topology_detail_close" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!--
+      右侧滑入的设置面板 —— **取代旧 UI 的左侧抽屉**。
+
+      为什么是这个形态：
+        · 旧抽屉（NavigationView + DrawerLayout）在 MainActivity.onCreate 里被
+          `setDrawerLockMode(LOCK_MODE_LOCKED_CLOSED)` 永久锁死，本来就打不开；
+          全项目也只有 `ToolbarFragment` 那一处还在调 openDrawer，属于死代码。
+          所以「把抽屉里的东西搬到新 UI 的 ⚙ 里」不需要动 MainActivity。
+        · 面板里装的是**现成的** SettingsPreferenceFragment（37 个偏好项 + ~30 处联动
+          全都在它里面），不重写一遍 —— 重写等于把 needReload / needRestart /
+          setTheme+recreate 这些副作用抄第二遍，迟早两边不一致。
+
+      和上面那个 ① 详情浮层一样，刻意用「同一棵视图树里的一层」而不是 Dialog 或新 Fragment：
+      关掉就能原样回到拓扑图，下拉刷新拿到的实时连接不会丢。
+
+      ⚠ 宽度用 `match_parent + marginStart=64dp` 而不是固定 320dp：
+      窄屏上是 ~82%（和原型一致），平板上自动变宽，永远留 64dp 露出后面的拓扑图。
+    -->
+    <FrameLayout
+        android:id="@+id/topology_panel_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#88000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/topology_panel"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:layout_marginStart="64dp"
+            android:background="@drawable/bg_topology_panel"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:orientation="horizontal"
+                android:paddingStart="8dp"
+                android:paddingEnd="16dp">
+
+                <ImageButton
+                    android:id="@+id/topology_panel_back"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/topology_settings_close"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/baseline_arrow_back_24" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:text="@string/settings"
+                    android:textAppearance="?android:textAppearanceMedium"
+                    android:textColor="?android:textColorPrimary"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#20808080" />
+
+            <androidx.fragment.app.FragmentContainerView
+                android:id="@+id/topology_panel_host"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <!--
+      「添加节点」面板（原型 #addPanel，`openAddPanel(1)` = protoOnly 那一档）。
+
+      和分组下拉里的「手动添加…」是同一件事：下拉里的「扫码 / 剪贴板 / 文件」三条
+      已经平铺在一级了，这里就**只给协议网格**，不再套一层导入入口
+      （原型注释：「protoOnly=1：只给协议网格，避免再套一层扫码入口」）。
+
+      几何和设置面板完全一样（右滑、marginStart=64dp），两个面板视觉上是同一套。
+      用 GridView 而不是 RecyclerView：17 个格子、不需要复用回收，
+      而且 GridView 自己就是可滚动的，外面不用再套 ScrollView。
+    -->
+    <FrameLayout
+        android:id="@+id/topology_add_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#88000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/topology_add_panel"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="end"
+            android:layout_marginStart="64dp"
+            android:background="@drawable/bg_topology_panel"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:orientation="horizontal"
+                android:paddingStart="8dp"
+                android:paddingEnd="16dp">
+
+                <ImageButton
+                    android:id="@+id/topology_add_back"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/topology_settings_close"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/baseline_arrow_back_24" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:text="@string/topology_add_title"
+                    android:textAppearance="?android:textAppearanceMedium"
+                    android:textColor="?android:textColorPrimary"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#20808080" />
+
+            <!-- 目标分组：说清楚新节点会落到哪 —— 订阅组只读，会落到第一个普通分组 -->
+            <TextView
+                android:id="@+id/topology_add_target"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="20dp"
+                android:paddingTop="14dp"
+                android:paddingEnd="20dp"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:textColor="?android:textColorPrimary" />
+
+            <TextView
+                android:id="@+id/topology_add_warn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="20dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="20dp"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:textColor="?android:textColorSecondary"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/topology_add_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="20dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="8dp"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:textColor="?android:textColorSecondary"
+                android:textStyle="bold" />
+
+            <GridView
+                android:id="@+id/topology_add_grid"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:columnWidth="100dp"
+                android:horizontalSpacing="8dp"
+                android:numColumns="auto_fit"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:stretchMode="columnWidth"
+                android:verticalSpacing="8dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="20dp"
+                android:paddingTop="10dp"
+                android:paddingEnd="20dp"
+                android:paddingBottom="18dp"
+                android:text="@string/topology_add_note"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:textColor="?android:textColorSecondary" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

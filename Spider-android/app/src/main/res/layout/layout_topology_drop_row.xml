@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  分组下拉里的一行。**同一个布局承担两种行**（原型 #subDrop 也是这么混排的）：
+    · 分组行：drop_icon 隐藏，drop_label = 分组名，drop_sub = 「订阅 / 本地分组」，
+              当前分组 drop_check 可见
+    · 操作行：drop_icon = emoji 图标，drop_label = 动作名，无副标题、无对勾
+  两种行共用一套 id，靠 Adapter 里按 type 显隐，避免再多一个布局文件。
+
+  ⚠ drop_icon 是 **TextView 而不是 ImageView** —— 图标位用 emoji 字形（⟳ 📷 📋 📁 ＋ ⚙️ 🏠），
+  和原型一字不差。理由：项目里没有剪贴板/二维码这几个图标，
+  自己画 vector 路径一旦有笔误就是肉眼可见的变形；emoji 是字体字形，
+  不占包体、不会画错。分组行不用图标，所以这个差异只影响操作行，内部是自洽的。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="48dp"
+    android:orientation="horizontal"
+    android:paddingStart="16dp"
+    android:paddingEnd="14dp">
+
+    <TextView
+        android:id="@+id/drop_icon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:minWidth="22dp"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <!-- 标签最多两行。
+             原来写的是 `singleLine="true"`，中文下没问题（「更新全部订阅」6 个字），
+             但英文/德文长度差不多是中文的两倍，一行放不下就变成
+             `Update all subscript…` / `Alle Abos aktualisieren…`。
+             放到两行比「加宽 + 切掉」更稳：加宽只能救到某个长度，
+             两行对所有语种都成立。行高是 wrap_content + minHeight，会自动长高。 -->
+        <TextView
+            android:id="@+id/drop_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:textColor="?android:textColorPrimary" />
+
+        <TextView
+            android:id="@+id/drop_sub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:singleLine="true"
+            android:textAppearance="?android:textAppearanceSmall"
+            android:textColor="?android:textColorSecondary"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+    <!-- 当前分组打勾（原型是左侧竖条高亮；这里用对勾，颜色跟强调色） -->
+    <ImageView
+        android:id="@+id/drop_check"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginStart="10dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_action_done"
+        android:visibility="gone" />
+
+</LinearLayout>

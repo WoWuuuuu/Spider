@@ -115,7 +115,6 @@ import java.net.UnknownHostException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.zip.ZipInputStream
 
 class ConfigurationFragment @JvmOverloads constructor(
     val select: Boolean = false, val selectedItem: ProxyEntity? = null, val titleRes: Int = 0
@@ -351,35 +350,9 @@ class ConfigurationFragment @JvmOverloads constructor(
         registerForActivityResult(ActivityResultContracts.GetContent()) { file ->
             if (file != null) runOnDefaultDispatcher {
                 try {
-                    val fileName =
-                        requireContext().contentResolver.query(file, null, null, null, null)
-                            ?.use { cursor ->
-                                cursor.moveToFirst()
-                                cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)
-                                    .let(cursor::getString)
-                            }
-                    val proxies = mutableListOf<AbstractBean>()
-                    if (fileName != null && fileName.endsWith(".zip")) {
-                        // try parse wireguard zip
-                        val zip =
-                            ZipInputStream(requireContext().contentResolver.openInputStream(file)!!)
-                        while (true) {
-                            val entry = zip.nextEntry ?: break
-                            if (entry.isDirectory) continue
-                            val fileText = zip.bufferedReader().readText()
-                            RawUpdater.parseRaw(fileText, entry.name)
-                                ?.let { pl -> proxies.addAll(pl) }
-                            zip.closeEntry()
-                        }
-                        zip.closeQuietly()
-                    } else {
-                        val fileText =
-                            requireContext().contentResolver.openInputStream(file)!!.use {
-                                it.bufferedReader().readText()
-                            }
-                        RawUpdater.parseRaw(fileText, fileName ?: "")
-                            ?.let { pl -> proxies.addAll(pl) }
-                    }
+                    /* 解析逻辑在 ProfileImporter 里 —— 新主页的「从文件导入」用的是同一份
+                       （含 WireGuard 的 .zip 分支）。抄第二份必然漂移。 */
+                    val proxies = ProfileImporter.parseFile(requireContext(), file)
                     if (proxies.isEmpty()) onMainDispatcher {
                         snackbar(getString(R.string.no_proxies_found_in_file)).show()
                     } else import(proxies)
@@ -395,12 +368,9 @@ class ConfigurationFragment @JvmOverloads constructor(
         }
 
     suspend fun import(proxies: List<AbstractBean>) {
-        val targetId = DataStore.selectedGroupForImport()
-        for (proxy in proxies) {
-            ProfileManager.createProfile(targetId, proxy)
-        }
+        /* 落库与「目标分组」的选择也在 ProfileImporter 里，与新主页共用同一份口径。 */
+        ProfileImporter.import(proxies)
         onMainDispatcher {
-            DataStore.editingGroup = targetId
             snackbar(
                 requireContext().resources.getQuantityString(
                     R.plurals.added, proxies.size, proxies.size

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  下拉里的分组标题（原型 .drop-head「已导入 · 分组 / 单个节点」）。
+  单独一个布局而不是复用行布局：这一行不可点、没有背景涟漪、字要更小更淡，
+  塞进行布局里反而要写一堆「把它改回去」的代码。
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/drop_header"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="16dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="16dp"
+    android:paddingBottom="6dp"
+    android:textAppearance="?android:textAppearanceSmall"
+    android:textColor="?android:textColorSecondary"
+    android:textStyle="bold" />

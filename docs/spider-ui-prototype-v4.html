@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spider · 新 UI 原型 v4（规则开关 / 分应用 / 双排节点）</title>
+<style>
+  :root[data-theme="latte"]{
+    --base:#EFF1F5; --mantle:#E6E9EF; --s0:#CCD0DA; --s1:#BCC0CC; --s2:#ACB0BE;
+    --ov0:#9CA0B0; --ov1:#8C8FA1; --sub0:#6C6F85; --sub1:#5C5F77; --text:#4C4F69;
+    --mauve:#8839EF; --lavender:#7287FD; --blue:#1E66F5; --green:#40A02B;
+    --yellow:#DF8E1D; --peach:#FE640B; --red:#D20F39;
+    --cardbg:#FFFFFF; --shadow:rgba(76,79,105,.10); --ghostline:#ACB0BE; --scrim:rgba(76,79,105,.22);
+  }
+  :root[data-theme="mocha"]{
+    --base:#1E1E2E; --mantle:#181825; --s0:#313244; --s1:#45475A; --s2:#585B70;
+    --ov0:#6C7086; --ov1:#7F849C; --sub0:#A6ADC8; --sub1:#BAC2DE; --text:#CDD6F4;
+    --mauve:#CBA6F7; --lavender:#B4BEFE; --blue:#89B4FA; --green:#A6E3A1;
+    --yellow:#F9E2AF; --peach:#FAB387; --red:#F38BA8;
+    --cardbg:#181825; --shadow:rgba(0,0,0,.35); --ghostline:#45475A; --scrim:rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:-apple-system,"PingFang SC",Segoe UI,sans-serif;min-height:100vh;
+       display:flex;flex-direction:column;align-items:center;padding:14px 12px 30px;gap:7px;
+       background:#F7F8FA;transition:background .3s}
+  html[data-theme="mocha"] body{background:#11111B}
+  .caption{font-size:12px;color:#5C5F77;text-align:center;line-height:1.6;max-width:480px}
+  html[data-theme="mocha"] .caption{color:#A6ADC8}
+  .caption b{color:#8839EF} html[data-theme="mocha"] .caption b{color:#CBA6F7}
+  .phone{width:390px;height:844px;border-radius:46px;padding:12px;position:relative;flex:none;
+         background:#E6E9EF;box-shadow:0 24px 60px rgba(76,79,105,.18),
+         inset 0 0 0 1px rgba(128,128,128,.12);transition:background .3s}
+  html[data-theme="mocha"] .phone{background:#181825;box-shadow:0 24px 60px rgba(0,0,0,.5),
+         inset 0 0 0 1px rgba(128,128,128,.12)}
+  .screen{position:absolute;inset:12px;border-radius:34px;overflow:hidden;background:var(--base);
+          transition:background .3s}
+  svg.lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:12;transition:opacity .3s}
+  .screen.off .card,.screen.off svg.lines{opacity:.28}
+  .screen.off .card{filter:grayscale(.6)}
+  svg.lines.focusing [data-k]{opacity:.055}
+  svg.lines.focusing [data-k].hl{opacity:1;stroke-width:2.2}
+
+  .topbar{position:absolute;top:16px;left:16px;right:16px;z-index:30;
+          display:flex;justify-content:space-between;align-items:center}
+  .sub-pill{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:600;
+            color:var(--text);background:var(--cardbg);border-radius:13px;padding:8px 12px;
+            cursor:pointer;box-shadow:0 1px 3px var(--shadow);max-width:190px}
+  .sub-pill .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sub-pill .chev{color:var(--sub1);font-size:9px;flex:none}
+  .tools{display:flex;align-items:center;gap:18px;flex:none}
+  .tools span{font-size:17px;cursor:pointer;line-height:1}
+  #powerBtn{color:var(--green);text-shadow:0 0 8px rgba(64,160,43,.5);transition:color .2s}
+  #powerBtn.off{color:var(--ov0);text-shadow:none}
+  #toolBtn{color:var(--sub0)}
+
+  .layer-label{position:absolute;left:16px;font-size:9px;letter-spacing:2.2px;color:var(--ov1);
+               z-index:2;text-transform:uppercase;font-weight:600}
+  .card{position:absolute;z-index:4;transform:translate(-50%,-50%);cursor:pointer;
+        width:84px;background:var(--cardbg);border-radius:11px;padding:7px 9px;
+        box-shadow:0 1px 4px var(--shadow);border:1px solid transparent;
+        display:flex;flex-direction:column;gap:3px;transition:opacity .3s,box-shadow .2s,top .25s,left .25s}
+  .card:active{transform:translate(-50%,-50%) scale(.96)}
+  .card.focus{z-index:15;box-shadow:0 3px 14px var(--shadow),0 0 0 1.5px var(--mauve)}
+  .card.wide{width:98px}
+  .card.dim{opacity:.42}
+  .card .r1{display:flex;align-items:center;gap:6px}
+  .card .nm{flex:1;min-width:0;font-size:11px;font-weight:650;color:var(--text);
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .ico{flex:none;width:14px;text-align:center;font-size:13px;line-height:1;overflow:hidden}
+  .card .r2{display:flex;align-items:center;gap:7px;font-size:8.5px;color:var(--sub0)}
+  .card .dn::before{content:"↓";color:var(--green);margin-right:1px}
+  .card .up::before{content:"↑";color:var(--yellow);margin-right:1px}
+  .card .ms{color:var(--blue);font-weight:650}
+  .card .tag{font-size:8px;color:var(--sub1);background:var(--s0);border-radius:4px;padding:1px 4px}
+  .card.proxy{border-left:2.5px solid var(--blue)}
+  .card.direct{border-left:2.5px solid var(--peach)}
+  .card.block{border-left:2.5px solid var(--red)}
+  .card.appcard{border-left:2.5px solid var(--mauve)}
+  .card.ghost{background:transparent;border:1px dashed var(--ghostline);box-shadow:none}
+  .card.ghost .nm{color:var(--ov1)}
+  .morecard{width:auto;padding:5px 9px;font-size:10px;color:var(--sub0);
+            border:1px dashed var(--ghostline);background:transparent;box-shadow:none}
+  .morecard.open{color:var(--mauve);border-color:var(--mauve);border-style:solid}
+
+  .dropdown{position:absolute;top:52px;left:16px;z-index:32;width:288px;background:var(--cardbg);
+            border-radius:15px;padding:6px;box-shadow:0 8px 28px var(--shadow);display:none;
+            max-height:680px;overflow-y:auto}
+  .dropdown.show{display:block}
+  .drop-head{font-size:9.5px;letter-spacing:1.2px;color:var(--ov1);padding:8px 12px 4px;
+             text-transform:uppercase;font-weight:650}
+  .drop-item{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;
+             border-radius:10px;font-size:13px;color:var(--text);cursor:pointer}
+  .drop-item:active{background:var(--s0)}
+  .drop-item .nmx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .drop-item .add{color:var(--blue);font-weight:650;font-size:12.5px}
+  .cnt-btn{font-size:10.5px;color:var(--sub0);background:var(--s0);border-radius:7px;
+           padding:3px 8px;cursor:pointer;flex:none}
+  .cnt-btn.open{background:var(--mauve);color:var(--cardbg)}
+  .sub-more{flex:none;width:30px;height:30px;margin:-7px -8px -7px 2px;border-radius:50%;
+            display:flex;align-items:center;justify-content:center;font-size:15px;
+            color:var(--ov1);cursor:pointer}
+  .sub-more.open{background:var(--s0);color:var(--text)}
+  .sub-menu{max-height:0;overflow:hidden;transition:max-height .24s cubic-bezier(.2,.8,.2,1)}
+  .sub-menu.open{max-height:210px}
+  .sub-mi{display:flex;align-items:center;gap:10px;margin:2px 6px;padding:9px 10px 9px 16px;
+          border-radius:9px;font-size:12.5px;color:var(--text);cursor:pointer}
+  .sub-mi:active{background:var(--s0)}
+  .sub-mi .d{font-size:10.5px;color:var(--sub0);margin-left:auto}
+  .sub-mi.danger{color:var(--red)} .sub-mi.danger .d{color:var(--red);opacity:.7}
+  .sub-mi.armed{background:var(--s0);font-weight:650}
+
+  /* 节点双排网格 */
+  .node-sub{max-height:0;overflow:hidden;transition:max-height .28s cubic-bezier(.2,.8,.2,1)}
+  .node-sub.open{max-height:400px;overflow-y:auto}
+  .ns-in{padding:6px 8px 8px;margin:2px 4px;background:var(--mantle);border-radius:10px}
+  .ns-bar{display:flex;align-items:center;gap:6px;background:var(--cardbg);border-radius:8px;
+          padding:7px 10px;margin-bottom:7px}
+  .ns-bar input{flex:1;border:none;outline:none;background:transparent;color:var(--text);font-size:11.5px}
+  .ns-chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+  .nsc{padding:5px 9px;border-radius:7px;background:var(--s0);color:var(--sub0);font-size:10px;
+       font-weight:650;cursor:pointer}
+  .ns-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .ncell{background:var(--cardbg);border-radius:9px;padding:8px 9px;cursor:pointer}
+  .ncell .nt{display:flex;align-items:center;gap:5px}
+  .ncell .nf{font-size:13px;flex:none}
+  .ncell .nn{font-size:11px;font-weight:650;color:var(--text);white-space:nowrap;
+             overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+  .ncell .nd{font-size:10.5px;font-weight:700;flex:none}
+  .ncell .ns2{font-size:8.5px;color:var(--sub0);margin-top:3px;white-space:nowrap;
+              overflow:hidden;text-overflow:ellipsis}
+  .ns-add{text-align:center;padding:9px;border-radius:9px;font-size:11.5px;font-weight:650;
+          color:var(--mauve);box-shadow:inset 0 0 0 1.5px var(--mauve);cursor:pointer;margin-top:7px}
+  .ns-empty{text-align:center;font-size:10.5px;color:var(--sub0);padding:12px 8px;
+            grid-column:1 / -1}
+
+  .scrim{position:absolute;inset:0;z-index:10;background:var(--scrim);opacity:0;
+         pointer-events:none;transition:opacity .22s}
+  .scrim.on{opacity:1;pointer-events:auto}
+  .pop{position:absolute;z-index:20;width:236px;background:var(--cardbg);border-radius:16px;
+       box-shadow:0 10px 34px var(--shadow);opacity:0;transform:scale(.94);
+       transform-origin:top center;pointer-events:none;transition:opacity .18s,transform .18s;overflow:hidden}
+  .pop.on{opacity:1;transform:scale(1);pointer-events:auto}
+  .pop-h{display:flex;align-items:flex-start;gap:10px;padding:12px 14px 10px}
+  .pop-h .ht{flex:1;min-width:0}
+  .pop-t{font-size:14px;font-weight:700;color:var(--text)}
+  .pop-s{font-size:10.5px;color:var(--sub0);margin-top:3px;line-height:1.5}
+  .pop-act{flex:none;width:36px;height:36px;border-radius:50%;background:var(--s0);
+           display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;margin-top:2px}
+  .pop-kv{display:flex;flex-wrap:wrap;gap:4px 10px;padding:0 14px 10px;font-size:10.5px;color:var(--sub0)}
+  .pop-kv b{color:var(--text);font-weight:600}
+  .pop-seg{display:flex;gap:4px;padding:0 14px 8px}
+  .pop-seg div{flex:1;text-align:center;font-size:10px;font-weight:650;padding:5px 0;border-radius:8px;
+               background:var(--s0);color:var(--sub0);cursor:pointer}
+  .pop-seg div.on{background:var(--mauve);color:var(--cardbg)}
+  .pop-search{margin:0 14px 8px;padding:6px 10px;border-radius:8px;background:var(--s0);
+              font-size:11px;color:var(--text);border:none;outline:none;width:calc(100% - 28px)}
+  .pop-list{max-height:152px;overflow-y:auto;border-top:1px solid var(--s0);padding:6px}
+  .prow{display:flex;align-items:center;gap:8px;padding:9px 8px;border-radius:10px;cursor:pointer;margin-bottom:2px}
+  .prow:active{background:var(--s0)} .prow.sel{background:var(--s0)}
+  .prow .pf{flex:none;width:19px;text-align:center;font-size:15px}
+  .prow .pm{flex:1;min-width:0}
+  .prow .pn{font-size:12px;font-weight:650;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .prow .pp{font-size:9px;color:var(--sub0);margin-top:1px}
+  .prow .pd{font-size:11px;font-weight:700;flex:none}
+  .prow .pc{font-size:11px;color:var(--green);font-weight:700;flex:none;width:10px}
+  .appr{display:flex;align-items:center;gap:8px;padding:8px 8px;border-radius:10px;cursor:pointer}
+  .appr .ai{font-size:15px;flex:none}
+  .appr .an{flex:1;min-width:0;font-size:11.5px;font-weight:650;color:var(--text);
+            white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .appr .ao{font-size:10px;color:var(--sub0);flex:none}
+
+  .dlg{position:absolute;z-index:22;left:50%;top:50%;transform:translate(-50%,-50%) scale(.9);
+       width:236px;background:var(--cardbg);border-radius:20px;padding:20px 18px 18px;
+       box-shadow:0 14px 40px var(--shadow);text-align:center;opacity:0;pointer-events:none;
+       transition:opacity .2s,transform .2s}
+  .dlg.on{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}
+  .dlg-ico{font-size:26px;line-height:1}
+  .dlg-t{font-size:16px;font-weight:700;color:var(--text);margin-top:8px}
+  .dlg-s{font-size:11px;color:var(--sub0);margin-top:3px}
+  .dlg-kv{display:flex;justify-content:space-between;align-items:center;padding:9px 0;
+          border-top:1px solid var(--s0);font-size:12px;margin-top:12px}
+  .dlg-kv span{color:var(--sub0)} .dlg-kv b{color:var(--text);font-weight:650;text-align:right;max-width:55%}
+  .dlg-kv .dn{color:var(--green)} .dlg-kv .up{color:var(--yellow)}
+  .dlg-hint{font-size:9.5px;color:var(--ov1);margin-top:14px;line-height:1.5}
+
+  .toast{position:absolute;z-index:40;left:50%;bottom:96px;transform:translate(-50%,10px);
+         background:var(--text);color:var(--base);font-size:11.5px;font-weight:600;
+         padding:9px 15px;border-radius:12px;opacity:0;pointer-events:none;
+         transition:opacity .2s,transform .2s;max-width:300px;text-align:center}
+  .toast.on{opacity:.95;transform:translate(-50%,0)}
+
+  .panel{position:absolute;inset:0;z-index:34;background:var(--base);
+         transform:translateX(100%);transition:transform .3s ease;display:flex;flex-direction:column}
+  .panel.show{transform:translateX(0)}
+  .panel-head{display:flex;align-items:center;gap:12px;padding:52px 18px 14px;border-bottom:1px solid var(--s0)}
+  .panel-head .back{font-size:24px;color:var(--sub0);cursor:pointer}
+  .panel-head h2{font-size:17px;font-weight:700;color:var(--text);flex:1}
+  .panel-head .hact{font-size:16px;color:var(--sub0);cursor:pointer}
+  .panel-body{flex:1;overflow-y:auto;padding:10px 14px 40px}
+  .sec-title{font-size:10px;letter-spacing:1.4px;color:var(--ov1);text-transform:uppercase;
+             margin:16px 4px 8px;font-weight:650}
+  .item{display:flex;justify-content:space-between;align-items:center;padding:13px 14px;
+        background:var(--cardbg);border-radius:13px;margin-bottom:7px;font-size:14px;
+        color:var(--text);cursor:pointer;box-shadow:0 1px 3px var(--shadow)}
+  .item .lead{flex:1;min-width:0}
+  .item .sub{font-size:11px;color:var(--sub0);margin-top:2px}
+  .item .arrow{color:var(--ov1)}
+  .toggle{width:42px;height:24px;border-radius:12px;background:var(--s1);position:relative;cursor:pointer;flex:none}
+  .toggle.on{background:var(--green)}
+  .toggle::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;
+                 background:#fff;top:3px;left:3px;transition:.2s}
+  .toggle.on::after{left:21px}
+  .tseg{display:flex;border-radius:9px;overflow:hidden;flex:none}
+  .tseg div{padding:6px 11px;font-size:11px;font-weight:650;background:var(--s0);color:var(--sub0);cursor:pointer}
+  .tseg div.on{background:var(--mauve);color:var(--cardbg)}
+  .ed-field{margin:15px 0}
+  .ed-field label{font-size:11px;color:var(--sub0);display:block;margin-bottom:6px}
+  .ed-input{width:100%;background:var(--cardbg);border-radius:11px;padding:12px;color:var(--text);
+            font-size:13px;box-shadow:0 1px 3px var(--shadow)}
+  .ed-pick{background:var(--cardbg);border-radius:11px;padding:11px;color:var(--text);
+           font-size:12px;text-align:center;cursor:pointer;box-shadow:0 1px 3px var(--shadow);margin-bottom:8px}
+  .ed-pick.sel{color:var(--mauve);box-shadow:inset 0 0 0 1.5px var(--mauve)}
+  .note{font-size:11px;color:var(--sub0);background:var(--s0);border-radius:10px;
+        padding:10px 12px;line-height:1.75;margin-top:6px}
+  .note.warn{color:var(--peach)}
+  .note b{color:var(--text)}
+  .btn{padding:12px;border-radius:12px;font-size:12.5px;font-weight:650;text-align:center;cursor:pointer;
+       background:var(--mauve);color:#fff;margin-top:14px}
+  .btn.alt{background:var(--s0);color:var(--text)}
+  .btn.danger{background:transparent;color:var(--red);box-shadow:inset 0 0 0 1.5px var(--red)}
+  .footnote{position:absolute;bottom:7px;left:0;right:0;text-align:center;font-size:9px;color:var(--ov1);z-index:2}
+  .apilist{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px;line-height:1.9;
+           color:var(--text);background:var(--cardbg);border-radius:11px;padding:12px 14px;
+           box-shadow:0 1px 3px var(--shadow)}
+  .apilist .u{color:var(--blue);font-weight:650}
+  .apilist .x{color:var(--sub0)}
+  .apilist .dep{color:var(--red);font-weight:650}
+  .mockpanel{background:#1a1b26;border-radius:11px;padding:12px;margin-top:8px;
+             box-shadow:0 1px 3px var(--shadow)}
+  .mockpanel .mh{display:flex;gap:6px;align-items:center;margin-bottom:10px}
+  .mockpanel .dot{width:8px;height:8px;border-radius:50%}
+  .mockpanel .mt{font-size:10px;color:#7f849c;margin-left:6px}
+  .mockpanel .mrow{display:flex;gap:8px;margin-bottom:7px}
+  .mockpanel .mcard{flex:1;background:#24283b;border-radius:7px;padding:8px 9px}
+  .mockpanel .mk{font-size:8.5px;color:#7f849c}
+  .mockpanel .mv{font-size:12px;font-weight:650;color:#c0caf5;margin-top:2px}
+  .mockpanel .mlist{background:#24283b;border-radius:7px;padding:8px 9px}
+  .mockpanel .mi{font-size:9.5px;color:#a9b1d6;padding:3px 0;display:flex;justify-content:space-between}
+
+  .debugbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:540px}
+  .dbtn{font-size:11.5px;padding:7px 13px;border-radius:9px;border:1px solid #CBD0DA;background:#fff;
+        color:#4C4F69;cursor:pointer}
+  html[data-theme="mocha"] .dbtn{background:#181825;border-color:#313244;color:#CDD6F4}
+  .dbtn.on{background:#8839EF;color:#fff;border-color:#8839EF}
+</style>
+</head>
+<body>
+  <div class="caption">
+    Spider · 新 UI <b>v4</b>：规则<b>开关</b>控制是否上主页 ｜ 分应用代理上第二层 ｜ 节点<b>双排</b><br>
+    入站展开/收起已修复 ｜ 点入站卡可看它<b>命中规则的原理</b>
+  </div>
+
+  <div class="phone">
+    <div class="screen" id="screen">
+      <svg class="lines" id="lines" viewBox="0 0 362 816" preserveAspectRatio="none"></svg>
+      <div class="scrim" id="scrim" onclick="closeAll()"></div>
+      <div class="layer-label" style="top:70px">① 入站 · INPUT</div>
+      <div class="layer-label" style="top:292px">② 路由规则 · 仅显示已启用</div>
+      <div class="layer-label" style="top:636px">③ 出站 · 由规则推导</div>
+
+      <div class="topbar">
+        <div class="sub-pill" id="subPill"></div>
+        <div class="tools">
+          <span id="powerBtn" onclick="togglePower()">⏻</span>
+          <span id="toolBtn" onclick="openSettings()">⚙</span>
+        </div>
+      </div>
+      <div class="dropdown" id="subDrop"></div>
+      <div id="inbound"></div><div id="middle"></div><div id="bottom"></div>
+      <div class="pop" id="pop"></div><div class="dlg" id="dlg"></div>
+      <div class="toast" id="toast"></div>
+
+      <div class="panel" id="settings">
+        <div class="panel-head"><span class="back" onclick="closePanel('settings')">‹</span><h2>设置</h2></div>
+        <div class="panel-body" id="setBody"></div>
+      </div>
+      <div class="panel" id="editor">
+        <div class="panel-head"><span class="back" onclick="closePanel('editor')">‹</span><h2 id="edTitle">编辑</h2></div>
+        <div class="panel-body" id="edBody"></div>
+      </div>
+      <div class="panel" id="groupPanel">
+        <div class="panel-head"><span class="back" onclick="closePanel('groupPanel')">‹</span><h2 id="grpTitle">分组</h2></div>
+        <div class="panel-body" id="grpBody"></div>
+      </div>
+      <div class="panel" id="routePanel">
+        <div class="panel-head"><span class="back" onclick="closePanel('routePanel')">‹</span>
+          <h2>路由规则</h2><span class="hact" onclick="openRuleEditor(-1)">＋</span></div>
+        <div class="panel-body" id="routeBody"></div>
+      </div>
+      <div class="panel" id="infoPanel">
+        <div class="panel-head"><span class="back" onclick="closePanel('infoPanel')">‹</span>
+          <h2 id="infoTitle">说明</h2></div>
+        <div class="panel-body" id="infoBody"></div>
+      </div>
+      <div class="footnote" id="foot">已连接 · 点卡片看链路，点空白处退出</div>
+    </div>
+  </div>
+
+  <div class="debugbar">
+    <div class="dbtn on" id="btnLatte" onclick="setTheme('latte')">浅色</div>
+    <div class="dbtn" id="btnMocha" onclick="setTheme('mocha')">深色</div>
+    <div class="dbtn" onclick="resetData()">重置</div>
+    <div class="dbtn" onclick="toggleGhost()">幽灵卡</div>
+  </div>
+
+<script>
+let GROUPS=[
+  {id:1,icon:"☁️",name:"多多云机场",type:0,nodes:["HK-01","HK-02","US-LAX","US-SJC","SG-01"],
+   url:"https://sub.duoduo.cloud/...",expire:"2027-03-01",used:"128 GB",total:"500 GB",updated:"2 小时前"},
+  {id:2,icon:"🗼",name:"灯塔",type:0,nodes:["灯塔-港03","灯塔-美07","灯塔-日02"],
+   url:"https://beacon.net/...",expire:"2026-11-20",used:"46 GB",total:"200 GB",updated:"昨天"},
+  {id:3,icon:"📁",name:"自建节点",type:1,nodes:[],url:"",expire:"—",used:"0",total:"—",updated:"—"}
+];
+let curGroup=1, proxyApps=false;
+const NODE_DB={
+  "HK-01":{flag:"🇭🇰",nm:"HK-01",proto:"Hysteria2",delay:38,server:"hk01.duoduo.cloud",port:443,gid:1},
+  "HK-02":{flag:"🇭🇰",nm:"HK-02",proto:"Hysteria2",delay:52,server:"hk02.duoduo.cloud",port:443,gid:1},
+  "US-LAX":{flag:"🇺🇸",nm:"US-LAX",proto:"TUIC",delay:152,server:"lax.duoduo.cloud",port:8443,gid:1},
+  "US-SJC":{flag:"🇺🇸",nm:"US-SJC",proto:"Trojan",delay:188,server:"sjc.duoduo.cloud",port:443,gid:1},
+  "SG-01":{flag:"🇸🇬",nm:"SG-01",proto:"VMess",delay:96,server:"sg01.duoduo.cloud",port:2087,gid:1},
+  "灯塔-港03":{flag:"🗼",nm:"灯塔-港03",proto:"Hysteria2",delay:44,server:"hk03.beacon.net",port:443,gid:2},
+  "灯塔-美07":{flag:"🗼",nm:"灯塔-美07",proto:"TUIC",delay:158,server:"us07.beacon.net",port:8443,gid:2},
+  "灯塔-日02":{flag:"🗼",nm:"灯塔-日02",proto:"Trojan",delay:88,server:"jp02.beacon.net",port:443,gid:2}
+};
+const TERMINAL={DIRECT:{flag:"⚡",nm:"DIRECT",desc:"本机直连，不走代理"},
+                BLOCK:{flag:"🚫",nm:"BLOCK",desc:"丢弃该流量，拦截"}};
+let connected=true;
+/* 入站：折叠用 fx/fy，展开用网格重排（修复收起后残留） */
+const INPUTS=[
+  {nm:"openai",ico:"🤖",fx:52,fy:120,dn:"1.2M",up:"0.3M"},
+  {nm:"netflix",ico:"🎬",fx:142,fy:100,dn:"840K",up:"92K"},
+  {nm:"eastmoney",ico:"📈",fx:236,fy:120,dn:"210K",up:"44K"},
+  {nm:"ads-tracker",ico:"🛡",fx:312,fy:100,dn:"63K",up:"0"},
+  {nm:"youtube",ico:"▶️",fx:52,fy:100,dn:"2.1M",up:"180K"},
+  {nm:"github",ico:"🐙",fx:142,fy:120,dn:"520K",up:"88K"},
+  {nm:"bilibili",ico:"📺",fx:236,fy:100,dn:"1.8M",up:"120K"},
+  {nm:"twitter",ico:"🐦",fx:312,fy:120,dn:"340K",up:"56K"}
+];
+const COLS=[52,142,236,312];
+function inPos(i,expanded){
+  if(expanded){const r=Math.floor(i/4),c=i%4;return{x:COLS[c],y:100+r*70};}
+  return{x:INPUTS[i].fx,y:INPUTS[i].fy};
+}
+/* 命中原理：内核按规则顺序匹配，第一条命中即生效；这里模拟内核返回结果 */
+const INPUT_RULE={"openai":"国外代理","netflix":"国外代理","eastmoney":"券商分流",
+  "ads-tracker":"广告拦截","youtube":"国外代理","github":"国外代理",
+  "bilibili":"国内直连","twitter":"国外代理"};
+const INPUT_MATCH={
+  "openai":"domain 匹配","netflix":"geosite 匹配","eastmoney":"domain 匹配",
+  "ads-tracker":"geosite 匹配","youtube":"geosite 匹配","github":"domain 匹配",
+  "bilibili":"geoip 匹配","twitter":"geosite 匹配"};
+/* enabled：只有 true 的规则进内核配置，也只有它显示在主页第二层 */
+let RULES=[
+  {nm:"国外代理",out:"HK-01",kind:"proxy",x:62,y:330,match:"geosite:geolocation-!cn",enabled:true},
+  {nm:"券商分流",out:"HK-01",kind:"proxy",x:170,y:330,match:"domain:eastmoney.com",enabled:true},
+  {nm:"广告拦截",out:"BLOCK",kind:"block",x:286,y:330,match:"geosite:category-ads-all",enabled:true},
+  {nm:"国内直连",out:"DIRECT",kind:"direct",x:116,y:400,match:"geoip:cn",enabled:true},
+  {nm:"兜底",out:"US-LAX",kind:"proxy",x:236,y:400,match:"MATCH",enabled:true},
+  {nm:"屏蔽 QUIC",out:"BLOCK",kind:"block",x:0,y:0,match:"port 443 / udp",enabled:false},
+  {nm:"内网直连",out:"DIRECT",kind:"direct",x:0,y:0,match:"geoip:private",enabled:false}
+];
+const RULES_INIT=JSON.parse(JSON.stringify(RULES));
+const KIND_TEXT={proxy:"PROXY 代理",direct:"BYPASS 直连",block:"BLOCK 拦截"};
+const KIND_COL={proxy:'--blue',direct:'--peach',block:'--red'};
+const CARD_H=46,OUT_Y=672,MAX_OUT=8,FOOT_H=28;
+const lines=document.getElementById('lines');
+let baseSvg="",particles=[],NODE_POS={},hlKeys=null,CUR=null,sortMode='delay';
+let showAllIn=false,showAllOut=false,searchQ="",nsQuery="",openNodeGroup=null;
+
+function poolNodes(){let a=[];GROUPS.forEach(g=>a=a.concat(g.nodes));return[...new Set(a)];}
+function isTerminal(k){return Object.keys(TERMINAL).includes(k);}
+function available(k){return isTerminal(k)||poolNodes().includes(k);}
+function short(k){return isTerminal(k)?TERMINAL[k].nm:NODE_DB[k].nm;}
+function delayCol(d){return d==null?'var(--ov0)':d<60?'var(--green)':d<160?'var(--yellow)':'var(--red)';}
+function delayTxt(d){return d==null?'—':d+'ms';}
+function grpOf(k){const g=GROUPS.find(x=>x.id===NODE_DB[k].gid);return g?g.name:'—';}
+function curG(){return GROUPS.find(g=>g.id===curGroup)||GROUPS[0];}
+function onRules(){return RULES.map((r,i)=>({r,i})).filter(o=>o.r.enabled);}
+
+function refNodes(){return[...new Set(onRules().map(o=>o.r.out))];}
+function layoutBottom(){
+  const refs=refNodes(),prox=refs.filter(k=>!isTerminal(k)),term=refs.filter(isTerminal);
+  const ordered=[...prox,...term],over=ordered.length>MAX_OUT;
+  const shown=(over&&!showAllOut)?ordered.slice(0,MAX_OUT-1):ordered;
+  MORE_OUT=(over&&!showAllOut)?ordered.length-(MAX_OUT-1):0;
+  const pos={},PER=4,L=48,R=314;
+  shown.forEach((k,i)=>{const row=Math.floor(i/PER),idx=i%PER;
+    const cnt=Math.min(PER,shown.length-row*PER);
+    pos[k]={x:Math.round(cnt===1?(L+R)/2:L+idx*((R-L)/(cnt-1))),y:OUT_Y+row*66};});
+  return pos;
+}
+function cssVar(v){return getComputedStyle(document.documentElement).getPropertyValue(v).trim();}
+function dot(x,y,c,k){return `<circle data-k="${k}" cx="${x}" cy="${y}" r="2" fill="${cssVar(c)}" opacity=".9"/>`;}
+function ortho(x1,y1,x2,y2){const dx=Math.abs(x2-x1),dy=y2-y1;
+  if(dx<1)return`M${x1},${y1} L${x2},${y2}`;let lead=(dy-dx)/2;
+  if(lead<10||lead+dx>dy-2){const cy=(y1+y2)/2;return`M${x1},${y1} C${x1},${cy} ${x2},${cy} ${x2},${y2}`;}
+  return`M${x1},${y1} L${x1},${y1+lead} L${x2},${y1+lead+dx} L${x2},${y2}`;}
+function port(c,s){const h=CARD_H/2;return{x:c.x,y:s==='bottom'?c.y+h:c.y-h};}
+
+function render(){
+  NODE_POS=layoutBottom();
+  const g=curG();
+  document.getElementById('subPill').innerHTML=
+    `<span class="nm">${g?g.icon+' '+g.name:'☁️ 未选择'}</span><span class="chev">▾</span>`;
+  const shownIn=showAllIn?INPUTS:INPUTS.slice(0,4);
+  const moreIn=INPUTS.length-shownIn.length;
+  let inh=shownIn.map((d,idx)=>{const p=inPos(idx,showAllIn);
+    return`<div class="card wide" id="in-${d.nm}" style="left:${p.x}px;top:${p.y}px" onclick="openInput('${d.nm}')">
+      <div class="r1"><span class="ico">${d.ico}</span><span class="nm">${d.nm}</span></div>
+      <div class="r2"><span class="dn">${d.dn}</span><span class="up">${d.up}</span></div></div>`;}).join('');
+  /* 聚合卡：折叠时补在第 5 位，展开时变「收起」独占末行 */
+  if(moreIn>0&&!showAllIn)
+    inh+=`<div class="card morecard" style="left:312px;top:158px" onclick="toggleMoreIn()">⋯ +${moreIn}</div>`;
+  if(showAllIn)
+    inh+=`<div class="card morecard open" style="left:181px;top:${100+Math.ceil(INPUTS.length/4)*70-12}px"
+      onclick="toggleMoreIn()">收起 ▲</div>`;
+  document.getElementById('inbound').innerHTML=inh;
+
+  /* 第二层：只放 enabled 的规则 + （可选）分应用代理卡 */
+  const on=onRules();
+  let mh=on.slice(0,5).map(o=>{const r=o.r,i=o.i;const p=slotRule(i);
+    return`<div class="card ${r.kind}" id="ru-${i}" style="left:${p.x}px;top:${p.y}px" onclick="openRule(${i})">
+      <div class="r1"><span class="nm">${r.nm}</span></div>
+      <div class="r2"><span class="tag">${countHits(r.nm)} 命中</span></div></div>`;}).join('');
+  if(proxyApps){
+    const p=slotApp();
+    mh+=`<div class="card appcard" id="ru-app" style="left:${p.x}px;top:${p.y}px" onclick="openAppCard()">
+      <div class="r1"><span class="ico">📱</span><span class="nm">应用分流</span></div>
+      <div class="r2"><span class="tag">${APP_LIST.length} 个应用</span></div></div>`;}
+  document.getElementById('middle').innerHTML=mh;
+
+  document.getElementById('bottom').innerHTML=Object.keys(NODE_POS).map(k=>{
+    const p=NODE_POS[k];if(!p)return'';
+    const ok=available(k),t=TERMINAL[k],n=NODE_DB[k];
+    const cls=k==="DIRECT"?"direct":k==="BLOCK"?"block":"proxy";
+    const icon=t?t.flag:n.flag,nm=t?t.nm:n.nm;
+    const sub=ok?(t?`<span class="tag">动作</span>`:`<span class="ms">${delayTxt(n.delay)}</span>`)
+                :`<span class="gline">待添加</span>`;
+    return`<div class="card ${ok?cls:'ghost'}" id="ou-${cssId(k)}" style="left:${p.x}px;top:${p.y}px"
+      onclick="openItem('${k}')"><div class="r1"><span class="ico">${icon}</span><span class="nm">${nm}</span></div>
+      <div class="r2">${sub}</div></div>`;}).join('')
+    +(MORE_OUT?`<div class="card morecard" style="left:300px;top:${OUT_Y+66}px"
+      onclick="toggleMoreOut()">⋯ +${MORE_OUT}</div>`:'');
+  build();if(CUR)refocus();
+}
+/* 已启用规则按序占 2 行锚点（3+2）；分应用卡补在空位 */
+function slotRule(i){
+  const on=onRules(),idx=on.findIndex(o=>o.i===i);
+  if(idx<0)return{x:62,y:330};
+  if(idx<3)return{x:[62,170,286][idx],y:330};
+  return{x:[116,236][idx-3],y:400};
+}
+function slotApp(){
+  const on=onRules(),n=Math.min(on.length,5);
+  if(n<3)return{x:[62,170,286][n],y:330};
+  if(n<5)return{x:[116,236][n-3],y:400};
+  return{x:181,y:400};
+}
+function cssId(k){return k.replace(/[^a-zA-Z0-9]/g,'');}
+function countHits(rn){return Object.values(INPUT_RULE).filter(v=>v===rn).length;}
+function toggleMoreIn(){showAllIn=!showAllIn;closeAll();render();}
+function toggleMoreOut(){showAllOut=!showAllOut;closeAll();render();}
+
+function drawLines(){
+  particles=[];let svg="";
+  INPUTS.forEach(d=>{const i=RULES.findIndex(x=>x.nm===INPUT_RULE[d.nm]&&x.enabled);if(i<0)return;
+    const p=inPos(INPUTS.indexOf(d),showAllIn);
+    const a=port(p,'bottom'),b=port({x:slotRule(i).x,y:slotRule(i).y},'top');
+    svg+=`<path data-k="in:${d.nm}" data-alt="r:${i}" d="${ortho(a.x,a.y,b.x,b.y)}"
+      stroke="${cssVar('--lavender')}" stroke-width="1" fill="none" opacity=".42"/>`;
+    svg+=dot(a.x,a.y,'--lavender',`in:${d.nm}`)+dot(b.x,b.y,'--lavender',`in:${d.nm}`);});
+  onRules().forEach(o=>{const i=o.i,r=o.r,p=NODE_POS[r.out];if(!p)return;
+    const ok=available(r.out),c=KIND_COL[r.kind],a=port({x:slotRule(i).x,y:slotRule(i).y},'bottom'),b=port(p,'top');
+    svg+=`<path data-k="r:${i}" data-alt="out:${r.out}" d="${ortho(a.x,a.y,b.x,b.y)}"
+      stroke="${cssVar(c)}" stroke-width="1.2" fill="none" opacity="${ok?.85:.45}" ${ok?'':'stroke-dasharray="4 4"'}/>`;
+    svg+=dot(a.x,a.y,c,`r:${i}`)+dot(b.x,b.y,c,`r:${i}`);
+    particles.push({k:`r:${i}`,c,x1:a.x,y1:a.y,x2:b.x,y2:b.y,t:Math.random()});});
+  lines.innerHTML=svg;applyHl();
+}
+function cacheBase(){baseSvg=lines.innerHTML;}
+function build(){drawLines();cacheBase();if(!connected)lines.innerHTML=baseSvg;}
+function bez(a,b,c,d,e,f,g,h,t){const m=1-t;return{x:m*m*m*a+3*m*m*t*c+3*m*t*t*e+t*t*t*g,
+  y:m*m*m*b+3*m*m*t*d+3*m*t*t*f+t*t*t*h};}
+function pAt(p){const{x1,y1,x2,y2,t}=p,dx=Math.abs(x2-x1),dy=y2-y1;
+  if(dx<1)return{x:x1,y:y1+dy*t};let lead=(dy-dx)/2,cy=(y1+y2)/2;
+  if(lead<10||lead+dx>dy-2)return bez(x1,y1,x1,cy,x2,cy,x2,y2,t);
+  const y3=y1+lead,y4=y3+dx,s1=y3-y1,s2=(y4-y3)*Math.SQRT2,s3=y2-y4,L=s1+s2+s3;let s=L*t;
+  if(s<s1)return{x:x1,y:y1+s};s-=s1;
+  if(s<s2){const k=s/s2,d=Math.sign(x2-x1)||1;return{x:x1+d*k*dx,y:y3+k*dx};}
+  s-=s2;return{x:x2,y:y4+s};}
+function anim(){if(connected){let e="";particles.forEach(p=>{
+    if(hlKeys&&!hlKeys.has(p.k))return;p.t+=.005;if(p.t>1)p.t=0;const q=pAt(p);
+    e+=`<circle cx="${q.x}" cy="${q.y}" r="1.9" fill="${cssVar(p.c)}" opacity=".95"/>`;});
+    lines.innerHTML=baseSvg+e;applyHl();}requestAnimationFrame(anim);}
+function applyHl(){if(!hlKeys){lines.classList.remove('focusing');return;}
+  lines.classList.add('focusing');
+  lines.querySelectorAll('[data-k]').forEach(el=>{
+    el.classList.toggle('hl',[...hlKeys].some(k=>el.dataset.k===k||el.dataset.alt===k));});}
+let CUR_CARDS=[];
+function focusChain(keys,ids){hlKeys=new Set(keys.filter(Boolean));applyHl();
+  document.querySelectorAll('.card.focus').forEach(c=>c.classList.remove('focus'));CUR_CARDS=[];
+  (ids||[]).filter(Boolean).forEach(id=>{const e=document.getElementById(id);if(!e)return;
+    e.classList.add('focus');CUR_CARDS.push({id,y:parseFloat(e.style.top)||0});});}
+function refocus(){if(!CUR)return;
+  if(CUR.t==='in')openInput(CUR.k,true);else if(CUR.t==='rule')openRule(CUR.k,true);
+  else if(CUR.t==='app')openAppCard(true);else openItem(CUR.k,true);}
+function showScrim(){document.getElementById('scrim').classList.add('on');}
+function closeAll(){document.getElementById('scrim').classList.remove('on');
+  document.getElementById('pop').classList.remove('on');document.getElementById('dlg').classList.remove('on');
+  hlKeys=null;CUR=null;applyHl();searchQ="";
+  document.querySelectorAll('.card.focus').forEach(c=>c.classList.remove('focus'));
+  document.getElementById('subDrop').classList.remove('show');}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');
+  clearTimeout(t.__h);t.__h=setTimeout(()=>t.classList.remove('on'),1900);}
+function placePop(anchor,selfId,mode){
+  const pop=document.getElementById('pop'),scr=document.getElementById('screen');
+  pop.classList.add('on');const list=pop.querySelector('.pop-list');if(!list)return;
+  list.style.maxHeight='152px';const chrome=pop.offsetHeight-list.offsetHeight;
+  const W=scr.clientWidth,H=scr.clientHeight,w=pop.offsetWidth;
+  if(mode==='bottom'){let top=8;
+    CUR_CARDS.forEach(c=>{if(c.id===selfId)return;const bt=c.y+CARD_H/2+8;if(bt<anchor.y)top=Math.max(top,bt);});
+    list.style.maxHeight=Math.max(70,Math.min(152,(H-FOOT_H)-top-chrome))+'px';
+    const h=pop.offsetHeight;pop.style.left=Math.round((W-w)/2)+'px';
+    pop.style.top=Math.max(top,Math.round(H-FOOT_H-h))+'px';return;}
+  let botLimit=H-FOOT_H;
+  CUR_CARDS.forEach(c=>{if(c.id===selfId)return;const t=c.y-CARD_H/2-8;if(t>=anchor.y)botLimit=Math.min(botLimit,t);});
+  const downTop=anchor.y+anchor.h/2+10;
+  list.style.maxHeight=Math.max(70,Math.min(152,botLimit-downTop-chrome))+'px';
+  const h=pop.offsetHeight;let y=Math.min(downTop,Math.max(8,botLimit-h));
+  pop.style.left=Math.round(Math.max(10,Math.min(anchor.x-w/2,W-w-10)))+'px';
+  pop.style.top=Math.round(Math.max(8,y))+'px';}
+
+/* 入站详情：解释命中原理 */
+function openInput(nm,again){
+  const rn=INPUT_RULE[nm],i=RULES.findIndex(x=>x.nm===rn);
+  const d=INPUTS.find(x=>x.nm===nm)||{ico:"🌐",dn:"0",up:"0"};
+  const why=INPUT_MATCH[nm]||'—';
+  document.getElementById('dlg').innerHTML=`
+    <div class="dlg-ico">${d.ico}</div><div class="dlg-t">${nm}</div>
+    <div class="dlg-s">入站流量源</div>
+    <div class="dlg-kv"><span>匹配依据</span><b>${why}</b></div>
+    <div class="dlg-kv"><span>命中规则</span><b>${rn}</b></div>
+    <div class="dlg-kv"><span>下行</span><b class="dn">↓${d.dn}</b></div>
+    <div class="dlg-kv"><span>上行</span><b class="up">↑${d.up}</b></div>
+    <div class="dlg-hint">内核按规则顺序逐条匹配，<br>第一条命中即生效（${rn} 排在第 ${i+1} 位）</div>`;
+  document.getElementById('dlg').classList.add('on');if(!again)showScrim();
+  CUR={t:'in',k:nm};
+  focusChain([`in:${nm}`,`r:${i}`,`out:${RULES[i].out}`],[`in-${nm}`,`ru-${i}`,`ou-${cssId(RULES[i].out)}`]);}
+function openRule(i,again){
+  const r=RULES[i];CUR={t:'rule',k:i};
+  const ins=Object.keys(INPUT_RULE).filter(n=>INPUT_RULE[n]===r.nm);
+  focusChain([`r:${i}`,`out:${r.out}`].concat(ins.map(n=>`in:${n}`)),
+    [`ru-${i}`,`ou-${cssId(r.out)}`].concat(ins.map(n=>`in-${n}`)));
+  document.getElementById('pop').innerHTML=`
+    <div class="pop-h"><div class="ht"><div class="pop-t">${r.nm}</div>
+      <div class="pop-s">${KIND_TEXT[r.kind]} · ${r.match}</div></div>
+      <div class="pop-act" title="编辑规则" onclick="openRuleEditor(${i})">✏️</div></div>
+    ${segHtml()}${listHtml(r.out,'rule')}`;
+  placePop({x:slotRule(i).x,y:slotRule(i).y,h:CARD_H},`ru-${i}`,'down');if(!again)showScrim();}
+const APP_LIST=[
+  {n:"Telegram",i:"✈️",out:"HK-01"},{n:"YouTube",i:"▶️",out:"US-LAX"},
+  {n:"Chrome",i:"🌐",out:"HK-02"},{n:"Spotify",i:"🎵",out:"SG-01"},
+  {n:"微信",i:"💬",out:"DIRECT"},{n:"支付宝",i:"💰",out:"DIRECT"}];
+function openAppCard(again){
+  CUR={t:'app',k:'app'};
+  focusChain([],['ru-app']);
+  const rows=APP_LIST.map((a,idx)=>`<div class="appr" onclick="pickApp(${idx})">
+    <span class="ai">${a.i}</span><span class="an">${a.n}</span><span class="ao">${short(a.out)}</span></div>`).join('');
+  document.getElementById('pop').innerHTML=`
+    <div class="pop-h"><div class="ht"><div class="pop-t">📱 应用分流</div>
+      <div class="pop-s">按应用指定出口 · 优先级高于普通规则</div></div>
+      <div class="pop-act" title="选择应用" onclick="toast('打开应用选择器')">＋</div></div>
+    <div class="pop-list" style="max-height:170px">${rows}</div>`;
+  const s=document.getElementById('screen'),pop=document.getElementById('pop');
+  pop.classList.add('on');
+  const w=pop.offsetWidth,h=pop.offsetHeight,anchor=slotApp();
+  pop.style.left=Math.round(Math.max(10,Math.min(anchor.x-w/2,s.clientWidth-w-10)))+'px';
+  pop.style.top=Math.round(Math.max(8,Math.min(anchor.y+33,s.clientHeight-FOOT_H-h)))+'px';
+  if(!again)showScrim();}
+function pickApp(idx){
+  const a=APP_LIST[idx];const nodes=[...poolNodes(),"DIRECT","BLOCK"];
+  const cur=a.out;const ni=nodes.indexOf(cur);
+  a.out=nodes[(ni+1)%nodes.length];
+  toast(`${a.n} → ${short(a.out)}`);openAppCard(true);}
+function openItem(k,again){
+  CUR={t:'out',k:k};
+  const rIdx=onRules().map(o=>o.i).filter(i=>RULES[i].out===k);
+  if(isTerminal(k)){
+    document.getElementById('dlg').innerHTML=`
+      <div class="dlg-ico">${TERMINAL[k].flag}</div><div class="dlg-t">${TERMINAL[k].nm}</div>
+      <div class="dlg-s">${TERMINAL[k].desc}</div>
+      <div class="dlg-kv"><span>类型</span><b>固定动作</b></div>
+      <div class="dlg-kv"><span>被引用</span><b>${rIdx.length} 条规则</b></div>
+      <div class="dlg-hint">点任意空白处关闭</div>`;
+    document.getElementById('dlg').classList.add('on');if(!again)showScrim();
+    focusChain(rIdx.map(i=>`r:${i}`).concat(`out:${k}`),rIdx.map(i=>`ru-${i}`).concat(`ou-${cssId(k)}`));return;}
+  const n=NODE_DB[k];
+  focusChain(rIdx.map(i=>`r:${i}`).concat(`out:${k}`),rIdx.map(i=>`ru-${i}`).concat(`ou-${cssId(k)}`));
+  document.getElementById('pop').innerHTML=`
+    <div class="pop-h"><div class="ht"><div class="pop-t">${n.flag} ${n.nm}</div>
+      <div class="pop-s">${n.proto} · <b style="color:${delayCol(n.delay)}">${delayTxt(n.delay)}</b></div></div>
+      <div class="pop-act" title="重新测速" onclick="testDelay('${k}')">⚡</div></div>
+    <div class="pop-kv"><span>服务器</span><b>${n.server}</b><span>端口</span><b>${n.port}</b>
+      <span>来自</span><b>${grpOf(k)}</b></div>
+    ${segHtml()}${listHtml(k,'node')}`;
+  placePop({x:NODE_POS[k].x,y:NODE_POS[k].y,h:CARD_H},`ou-${cssId(k)}`,'bottom');if(!again)showScrim();}
+function segHtml(){const o=(m,t)=>`<div class="${sortMode===m?'on':''}" onclick="setSort('${m}')">${t}</div>`;
+  return `<div class="pop-seg">${o('delay','按延迟 ↑')}${o('name','按名称')}${o('type','按协议')}</div>`;}
+function listHtml(cur,mode){
+  let list=[...poolNodes()];
+  if(searchQ)list=list.filter(k=>NODE_DB[k].nm.toLowerCase().includes(searchQ.toLowerCase())
+    ||NODE_DB[k].proto.toLowerCase().includes(searchQ.toLowerCase()));
+  const cmp={delay:(a,b)=>(NODE_DB[a].delay??9999)-(NODE_DB[b].delay??9999),
+    name:(a,b)=>NODE_DB[a].nm.localeCompare(NODE_DB[b].nm),
+    type:(a,b)=>NODE_DB[a].proto.localeCompare(NODE_DB[b].proto)||NODE_DB[a].nm.localeCompare(NODE_DB[b].nm)}[sortMode];
+  list.sort(cmp);
+  const rows=list.map(k=>{const n=NODE_DB[k],sel=(k===cur);
+    return`<div class="prow ${sel?'sel':''}" onclick="pick('${mode}','${k}')">
+      <span class="pf">${n.flag}</span><span class="pm"><div class="pn">${n.nm}</div>
+      <div class="pp">${n.proto} · ${grpOf(k)}</div></span>
+      <span class="pd" style="color:${delayCol(n.delay)}">${delayTxt(n.delay)}</span>
+      <span class="pc">${sel?'✓':''}</span></div>`;}).join('');
+  const terms=Object.keys(TERMINAL).map(k=>{const x=TERMINAL[k],sel=(k===cur);
+    return`<div class="prow ${sel?'sel':''}" onclick="pick('${mode}','${k}')">
+      <span class="pf">${x.flag}</span><span class="pm"><div class="pn">${x.nm}</div>
+      <div class="pp">${x.desc}</div></span><span class="pc">${sel?'✓':''}</span></div>`;}).join('');
+  const body=list.length?rows:`<div style="padding:16px 10px;text-align:center;font-size:11px;color:var(--sub0)">没有匹配的节点</div>`;
+  const empty=poolNodes().length?'':`<div style="padding:16px 10px;text-align:center;font-size:11px;color:var(--sub0)">
+      暂无节点<br><span style="color:var(--blue);font-weight:650">请在左上分组菜单中添加</span></div>`;
+  const srch=poolNodes().length>6?`<input class="pop-search" placeholder="搜索节点…" value="${searchQ}"
+      oninput="onSearch(this.value)" onclick="event.stopPropagation()">`:'';
+  return `${srch}<div class="pop-list">${empty||body}${empty?'':terms}</div>`;}
+function onSearch(v){searchQ=v;refocus();}
+function setSort(m){sortMode=m;refocus();}
+function pick(mode,key){
+  if(mode==='rule'){const i=CUR.k;RULES[i].out=key;toast(`规则「${RULES[i].nm}」→ ${short(key)}`);}
+  else{let n=0;RULES.forEach(r=>{if(r.out===CUR.k){r.out=key;n++}});
+    toast(n?`${short(key)} 已接管 ${n} 条规则`:`已切换到 ${short(key)}`);}
+  closeAll();render();}
+function testDelay(k){const n=NODE_DB[k];n.delay=Math.max(20,Math.round(n.delay+(Math.random()*60-30)));
+  render();openItem(k,true);toast(`${n.nm} 延迟 ${n.delay} ms`);}
+
+/* ===== 分组下拉（含双排节点） ===== */
+document.getElementById('subPill').onclick=()=>{
+  closeAll();nsQuery="";
+  const d=document.getElementById('subDrop');
+  let h=`<div class="drop-head">分组 / 订阅</div>`;
+  h+=GROUPS.map(g=>`<div class="drop-item" data-g="${g.id}">
+      <span class="nmx">${g.icon} ${g.name}</span>
+      ${g.id===curGroup?'<span style="color:var(--green);flex:none">✓</span>':''}
+      <span class="cnt-btn ${openNodeGroup===g.id?'open':''}" data-cnt="${g.id}">${g.nodes.length} 节点</span>
+      <span class="sub-more" data-more="${g.id}">⋯</span></div>
+      <div class="sub-menu" id="sm-${g.id}">${grpMenu(g)}</div>
+      <div class="node-sub ${openNodeGroup===g.id?'open':''}" id="ns-${g.id}">${nodeSubHtml(g)}</div>`).join('');
+  h+=`<div style="height:1px;background:var(--s0);margin:6px 4px"></div>
+      <div class="drop-item" data-add="1"><span class="add">＋ 新增分组</span></div>
+      <div class="drop-item" data-addnode="1"><span class="add">＋ 添加节点到「${curG()?curG().name:''}」</span></div>
+      <div class="drop-item" data-updall="1"><span class="add">⟳ 更新全部订阅</span></div>`;
+  d.innerHTML=h;d.classList.add('show');bindDrop(d);};
+function bindDrop(d){
+  d.querySelectorAll('.drop-item').forEach(it=>it.onclick=e=>{
+    if(e.target.closest('.sub-more')||e.target.closest('.cnt-btn'))return;
+    if(it.dataset.add){d.classList.remove('show');openGroupPanel(null);}
+    else if(it.dataset.addnode){d.classList.remove('show');toast('添加节点：扫码 / 剪贴板 / 文件 / 手动 16 种协议');}
+    else if(it.dataset.updall){toast('已开始更新全部订阅');d.classList.remove('show');}
+    else if(it.dataset.g){curGroup=+it.dataset.g;d.classList.remove('show');render();
+      toast('已切换到「'+curG().name+'」');}});
+  d.querySelectorAll('.cnt-btn').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();const id=+b.dataset.cnt;
+    openNodeGroup=(openNodeGroup===id)?null:id;nsQuery="";
+    document.getElementById('subPill').click();});
+  d.querySelectorAll('.sub-more').forEach(btn=>btn.onclick=e=>{
+    e.stopPropagation();const id=btn.dataset.more,menu=document.getElementById('sm-'+id);
+    const opening=!menu.classList.contains('open');
+    d.querySelectorAll('.sub-menu').forEach(m=>m.classList.remove('open'));
+    d.querySelectorAll('.sub-more').forEach(b=>b.classList.remove('open'));
+    d.querySelectorAll('.node-sub').forEach(m=>m.classList.remove('open'));
+    if(opening){menu.classList.add('open');btn.classList.add('open');openNodeGroup=null;}
+    else openNodeGroup=null;});
+  d.querySelectorAll('.sub-mi').forEach(mi=>mi.onclick=e=>{
+    e.stopPropagation();const id=+mi.dataset.name,act=mi.dataset.act;
+    if(act==='edit'){d.classList.remove('show');openGroupPanel(id);}
+    else if(act==='update'){mi.querySelector('.d').textContent='更新中…';
+      setTimeout(()=>{mi.querySelector('.d').textContent=GROUPS.find(g=>g.id===id).updated;toast('已是最新');},700);}
+    else if(act==='copy')toast('订阅链接已复制');else if(act==='del')askDel(id,mi);});}
+function grpMenu(g){
+  return `<div class="sub-mi" data-name="${g.id}" data-act="edit">✏️ 编辑分组<span class="d">${g.nodes.length} 节点</span></div>
+    <div class="sub-mi" data-name="${g.id}" data-act="update">⟳ 立即更新<span class="d">${g.updated}</span></div>
+    <div class="sub-mi" data-name="${g.id}" data-act="copy">🔗 复制链接<span class="d">只读</span></div>
+    <div class="sub-mi danger" data-name="${g.id}" data-act="del">🗑 删除分组<span class="d"></span></div>`;}
+function nodeSubHtml(g){
+  let list=[...g.nodes];
+  if(nsQuery)list=list.filter(k=>NODE_DB[k].nm.toLowerCase().includes(nsQuery.toLowerCase())
+    ||NODE_DB[k].proto.toLowerCase().includes(nsQuery.toLowerCase()));
+  const cells=list.map(k=>{const n=NODE_DB[k];
+    return`<div class="ncell" onclick="toast('${n.nm} · ${n.proto} · ${n.server}')">
+      <div class="nt"><span class="nf">${n.flag}</span><span class="nn">${n.nm}</span>
+        <span class="nd" style="color:${delayCol(n.delay)}">${delayTxt(n.delay)}</span></div>
+      <div class="ns2">${n.proto} · ${n.server}</div></div>`;}).join('');
+  return `<div class="ns-in" onclick="event.stopPropagation()">
+    <div class="ns-bar"><span style="font-size:11px">🔍</span>
+      <input placeholder="搜索本组节点…" value="${nsQuery}" oninput="onNsSearch(${g.id},this.value)"></div>
+    <div class="ns-chips">
+      <div class="nsc" onclick="toast('已对「${g.name}」发起 TCP Ping')">⚡ TCP Ping</div>
+      <div class="nsc" onclick="toast('已发起 URL Test')">🌐 URL Test</div>
+      <div class="nsc" onclick="toast('已清除测速结果')">✕ 清结果</div>
+      <div class="nsc" onclick="toast('已去重')">🧹 去重</div>
+      <div class="nsc" onclick="toast('已删除不可用节点')">🗑 删不可用</div>
+      <div class="nsc" onclick="toast('已清除流量统计')">📊 清流量</div></div>
+    <div class="ns-grid">${list.length?cells:`<div class="ns-empty">${g.nodes.length?'没有匹配的节点':'本组暂无节点'}</div>`}</div>
+    <div class="ns-add" onclick="toast('添加节点到「${g.name}」')">＋ 添加节点到本组</div></div>`;}
+function onNsSearch(id,v){nsQuery=v;const el=document.getElementById('ns-'+id);
+  if(el)el.innerHTML=nodeSubHtml(GROUPS.find(g=>g.id===id));
+  const inp=document.querySelector('#ns-'+id+' input');if(inp){inp.focus();inp.value=v;}}
+function askDel(id,el){
+  if(el.dataset.armed){GROUPS=GROUPS.filter(g=>g.id!==id);
+    if(!GROUPS.find(g=>g.id===curGroup))curGroup=GROUPS[0]?GROUPS[0].id:null;
+    document.getElementById('subDrop').classList.remove('show');render();toast('已删除分组');return;}
+  el.dataset.armed='1';el.classList.add('armed');el.innerHTML='⚠️ 再点一次确认删除';}
+function openGroupPanel(id){
+  closeAll();const g=id?GROUPS.find(x=>x.id===id):null;const isSub=(g?g.type:0)===0;
+  document.getElementById('grpTitle').textContent=g?'编辑分组':'新增分组';
+  document.getElementById('grpBody').innerHTML=`
+    <div class="ed-field"><label>分组名称</label><div class="ed-input">${g?g.name:'新分组'}</div></div>
+    <div class="ed-field"><label>分组类型</label>
+      <div style="display:flex;gap:8px">
+        <div class="ed-pick ${isSub?'sel':''}" onclick="pickType(this)" style="flex:1">订阅</div>
+        <div class="ed-pick ${!isSub?'sel':''}" onclick="pickType(this)" style="flex:1">普通分组</div></div></div>
+    <div class="item"><div class="lead"><div>使用 selector（自动选择）</div>
+      <div class="sub">开启后规则可指向整个分组，由内核自动选点</div></div>
+      <div class="toggle on" onclick="event.stopPropagation();this.classList.toggle('on')"></div></div>
+    <div class="sec-title">订阅设置</div>
+    <div class="ed-field"><label>订阅链接</label>
+      <div class="ed-input">${g&&g.url?g.url:'（留空则为普通分组）'}</div></div>
+    <div class="item"><div class="lead">强制解析</div><div class="toggle" onclick="event.stopPropagation();this.classList.toggle('on')"></div></div>
+    <div class="item"><div class="lead">节点去重</div><div class="toggle on" onclick="event.stopPropagation();this.classList.toggle('on')"></div></div>
+    <div class="sec-title">更新设置</div>
+    <div class="item"><div class="lead">仅在连接时更新</div><div class="toggle" onclick="event.stopPropagation();this.classList.toggle('on')"></div></div>
+    <div class="item"><div class="lead">自动更新</div><div class="toggle on" onclick="event.stopPropagation();this.classList.toggle('on')"></div></div>
+    <div class="ed-field"><label>自动更新间隔（分钟）</label><div class="ed-input">1440</div></div>
+    <div class="ed-field"><label>User-Agent</label><div class="ed-input">（默认）</div></div>
+    <div class="note">节点的增删改、测速、去重请在主界面左上角分组菜单里展开节点列表操作。</div>
+    ${g?`<div class="btn danger" onclick="removeGroup(${g.id})">删除此分组</div>`:''}
+    <div class="btn" onclick="saveGroup(${id||0})">保存</div>`;
+  document.getElementById('groupPanel').classList.add('show');}
+function pickType(el){
+  el.parentNode.querySelectorAll('.ed-pick').forEach(p=>p.classList.remove('sel'));el.classList.add('sel');}
+function saveGroup(id){
+  if(!id){const nid=Math.max(...GROUPS.map(g=>g.id))+1;
+    GROUPS.push({id:nid,icon:"📁",name:"新分组",type:1,nodes:[],url:"",expire:"—",used:"0",total:"—",updated:"—"});
+    curGroup=nid;toast('已新增分组');}else toast('已保存分组');
+  closePanel('groupPanel');render();}
+function removeGroup(id){GROUPS=GROUPS.filter(g=>g.id!==id);
+  if(!GROUPS.find(g=>g.id===curGroup))curGroup=GROUPS[0]?GROUPS[0].id:null;
+  closePanel('groupPanel');render();toast('已删除分组');}
+
+/* ===== 设置：5 组（订阅组已并入主界面） ===== */
+let TEST_URLS=["http://cp.cloudflare.com/","https://www.google.com/generate_204",
+  "https://captive.apple.com/","http://www.bing.com/","https://1.1.1.1/"];
+let curTestUrl=0;
+let settings=[
+  {t:"路由 · Routing",items:[
+    {n:"路由规则",s:"开关打开才生效并显示在主页第二层",act:"openRoutePanel"},
+    {n:"分应用代理",s:"开启后主页第二层出现「应用分流」卡",sw:true,key:"proxyApps"},
+    {n:"绕过 LAN",s:"",sw:true,on:true},
+    {n:"内核层绕过 LAN",s:"",sw:true},
+    {n:"流量嗅探",s:"用于域名还原",act:"toast:流量嗅探设置"},
+    {n:"解析目标地址",s:"",sw:true,on:true},
+    {n:"IPv6 模式",s:"默认",act:"toast:IPv6 设置"},
+    {n:"规则提供者",s:"本地",act:"toast:规则提供者"}]},
+  {t:"DNS",items:[
+    {n:"远程 DNS",s:"https://dns.google/dns-query",act:"toast:远程 DNS"},
+    {n:"直连 DNS",s:"https://223.5.5.5/dns-query",act:"toast:直连 DNS"},
+    {n:"域名策略（远程）",s:"auto",act:"toast:域名策略"},
+    {n:"域名策略（直连）",s:"auto",act:"toast:域名策略"},
+    {n:"域名策略（服务器）",s:"auto",act:"toast:域名策略"},
+    {n:"DNS 路由",s:"",sw:true,on:true},
+    {n:"FakeDNS",s:"",sw:true,on:true}]},
+  {t:"连接 · Connection",items:[
+    {n:"混合端口",s:"7890",act:"toast:混合端口"},
+    {n:"附加 HTTP 代理",s:"",sw:true},
+    {n:"允许来自局域网",s:"",sw:true},
+    {n:"网络变化时重置连接",s:"",sw:true,on:true},
+    {n:"唤醒时重置连接",s:"",sw:true},
+    {n:"通知栏速度刷新间隔",s:"1000 ms · 控制通知上的实时速率刷新频率",act:"openSpeed"},
+    {n:"服务模式",s:"VPN",act:"toast:服务模式"},
+    {n:"TUN 实现",s:"系统",act:"toast:TUN 实现"},
+    {n:"MTU",s:"9000",act:"toast:MTU"},
+    {n:"按计量网络处理",s:"",sw:true},
+    {n:"保持唤醒锁",s:"",sw:true},
+    {n:"全局允许不安全",s:"",sw:true},
+    {n:"请求允许不安全",s:"",sw:true},
+    {n:"TLS 版本",s:"1.2",act:"toast:TLS 版本"}]},
+  {t:"界面 · Appearance",items:[
+    {n:"主题",s:"Latte / Mocha / 动态取色",seg:["浅色","深色"]},
+    {n:"夜间模式",s:"跟随系统",act:"toast:夜间模式"},
+    {n:"流量统计",s:"",sw:true,on:true},
+    {n:"显示直连速度",s:"",sw:true,on:true},
+    {n:"通知显示分组",s:"",sw:true},
+    {n:"省电模式（关闭动画）",s:"关闭粒子与走线动画",sw:true,note:"new"},
+    {n:"卡片显示服务器地址",s:"由「总是显示地址」适配而来",sw:true,note:"adapted"}]},
+  {t:"工具与关于 · Tools",items:[
+    {n:"连接测试 URL",s:()=>TEST_URLS[curTestUrl],act:"openTestUrl"},
+    {n:"备份与恢复",s:"导入 / 导出配置",act:"toast:备份与恢复"},
+    {n:"网络工具",s:"STUN · 连通性诊断",act:"toast:网络工具"},
+    {n:"资源文件管理",s:"geoip / geosite",act:"toast:资源文件"},
+    {n:"系统日志",s:"",act:"toast:系统日志"},
+    {n:"日志级别",s:"Info",act:"toast:日志级别"},
+    {n:"Clash API",s:"127.0.0.1:9090 · 新 UI 依赖它",act:"openApi",note:"new"},
+    {n:"Clash 面板",s:"第三方 Web 控制台",act:"openDash",note:"maybe"},
+    {n:"自定义配置",s:"全局 config 片段",act:"toast:自定义配置"},
+    {n:"关于 Spider",s:"版本 · 开源许可",act:"toast:关于"}]}
+];
+function openSettings(){
+  closeAll();
+  const light=document.documentElement.getAttribute('data-theme')==='latte';
+  let h=`<div class="note">节点与订阅的管理已整合进<b>主界面左上角的分组菜单</b>；
+    订阅的自动更新 / UA 等属于<b>分组级</b>设置，在分组编辑面板里，故此处不再单列「订阅」组。</div>`;
+  settings.forEach(sec=>{
+    h+=`<div class="sec-title">${sec.t}</div>`;
+    sec.items.forEach(it=>{
+      const s=typeof it.s==='function'?it.s():it.s;
+      h+=`<div class="item" ${it.sw||it.seg?'':`onclick="doAct('${it.act}')"`}>
+        <div class="lead"><div>${it.n}
+          ${it.note==='new'?' <span class="tag" style="color:var(--mauve)">重点</span>':''}
+          ${it.note==='maybe'?' <span class="tag" style="color:var(--peach)">待定</span>':''}
+          ${it.note==='adapted'?' <span class="tag">已适配</span>':''}</div>
+        ${s?`<div class="sub">${s}</div>`:''}</div>
+        ${it.sw?`<div class="toggle ${it.key==='proxyApps'?(proxyApps?'on':''):(it.on?'on':'')}"
+             onclick="event.stopPropagation();toggleSw(this,'${it.key||''}')"></div>`
+          :it.seg?`<div class="tseg" onclick="event.stopPropagation()">
+             <div class="${light?'on':''}" onclick="setTheme('latte')">${it.seg[0]}</div>
+             <div class="${light?'':'on'}" onclick="setTheme('mocha')">${it.seg[1]}</div></div>`
+          :`<span class="arrow">›</span>`}</div>`;});});
+  document.getElementById('setBody').innerHTML=h;
+  document.getElementById('settings').classList.add('show');}
+function toggleSw(el,key){
+  el.classList.toggle('on');
+  if(key==='proxyApps'){proxyApps=!proxyApps;closeAll();render();
+    toast(proxyApps?'已开启分应用代理 → 主页第二层出现「应用分流」':'已关闭分应用代理');}}
+function doAct(a){
+  if(!a||a==='undefined')return;
+  if(a.startsWith('toast:')){toast(a.slice(6));return;}
+  if(a==='openRoutePanel')openRoutePanel();
+  else if(a==='openTestUrl')openTestUrl();
+  else if(a==='openApi')openApi();
+  else if(a==='openDash')openDash();
+  else if(a==='openSpeed')openSpeed();}
+function closePanel(id){document.getElementById(id).classList.remove('show');}
+function infoPanel(title,html){
+  closeAll();document.getElementById('infoTitle').textContent=title;
+  document.getElementById('infoBody').innerHTML=html;
+  document.getElementById('infoPanel').classList.add('show');}
+function openSpeed(){
+  infoPanel('通知速度刷新间隔',`
+    <div class="note">这是<b>通知栏上实时速率</b>的刷新频率，跟界面无关，之前放在「界面」组容易误解，已移到「连接」。</div>
+    <div class="sec-title">可选间隔</div>
+    ${[200,500,1000,2000,5000].map(v=>`<div class="ed-pick ${v===1000?'sel':''}"
+      onclick="toast('已设为 ${v} ms')">${v} ms${v===1000?' （默认）':''}</div>`).join('')}
+    <div class="note">刷新越快越耗电；1000 ms 是默认值。</div>`);}
+function openTestUrl(){
+  infoPanel('连接测试 URL',`
+    <div class="note">测速与可用性检测请求的地址。建议选<b>延迟低、不会被劫持</b>的探测点。</div>
+    <div class="sec-title">预设</div>
+    ${TEST_URLS.map((u,i)=>`<div class="ed-pick ${i===curTestUrl?'sel':''}"
+      onclick="curTestUrl=${i};openTestUrl();toast('已切换到 ${u}')">${u}</div>`).join('')}
+    <div class="sec-title">自定义</div>
+    <div class="ed-input">输入自定义 URL…</div>
+    <div class="note">原实现是一个纯文本输入框，没有预设；这里改成预设 + 自定义，避免用户不知道填什么。</div>`);}
+function openApi(){
+  infoPanel('Clash API 是什么',`
+    <div class="note">内核在手机本地 <b>127.0.0.1:9090</b> 开的一个 HTTP 服务，对外暴露 REST / WebSocket 接口。
+    它<b>不是联网服务</b>，只有本机能访问。</div>
+    <div class="sec-title">它提供这些接口</div>
+    <div class="apilist">
+      <div><span class="u">/connections</span> <span class="dep">← 新 UI 依赖</span>
+        <div class="x">实时连接：域名、应用包名、上下行、命中规则</div></div>
+      <div style="height:8px"></div>
+      <div><span class="u">/traffic</span> <span class="x">全局实时上下行速率（WS）</span></div>
+      <div><span class="u">/proxies</span> <span class="x">节点列表、切换节点、测延迟</span></div>
+      <div><span class="u">/rules</span> <span class="x">当前生效的路由规则</span></div>
+      <div><span class="u">/configs</span> <span class="x">读写运行中的配置</span></div>
+      <div><span class="u">/dns</span> <span class="x">DNS 查询与缓存</span></div>
+      <div><span class="u">/logs</span> <span class="x">实时日志流</span></div>
+      <div><span class="u">/providers</span> <span class="x">规则库 / 代理提供者</span></div>
+      <div><span class="u">/ui</span> <span class="x">Web 控制台（就是「面板」）</span></div>
+    </div>
+    <div class="note warn"><b>结论：</b>新 UI 第一层（域名/应用 + 流量 + 命中规则）的数据只能从
+      <b>/connections</b> 拿。<b>所以 Clash API 必须保留，而且建议默认开启</b>，
+      否则主界面第一层会是空的。</div>`);}
+function openDash(){
+  infoPanel('Clash 面板是什么',`
+    <div class="note">第三方做的<b>网页版控制台</b>（Yacd / Meta CubeXD 等），通过上面的 Clash API 干活。
+    打开方式：内核启动后，用内置浏览器访问 <b>127.0.0.1:9090/ui</b>。</div>
+    <div class="sec-title">它长这样（示意）</div>
+    <div class="mockpanel">
+      <div class="mh"><span class="dot" style="background:#F7768E"></span>
+        <span class="dot" style="background:#E0AF68"></span>
+        <span class="dot" style="background:#9ECE6A"></span>
+        <span class="mt">127.0.0.1:9090/ui</span></div>
+      <div class="mrow">
+        <div class="mcard"><div class="mk">Upload</div><div class="mv">1.2 MB/s</div></div>
+        <div class="mcard"><div class="mk">Download</div><div class="mv">8.4 MB/s</div></div>
+        <div class="mcard"><div class="mk">Active</div><div class="mv">36</div></div></div>
+      <div class="mlist">
+        <div class="mi"><span>GLOBAL</span><span style="color:#7AA2F7">▼</span></div>
+        <div class="mi"><span>HK-01 · 38ms</span><span style="color:#9ECE6A">✓</span></div>
+        <div class="mi"><span>US-LAX · 152ms</span><span style="color:#565F89"></span></div>
+        <div class="mi"><span>DIRECT</span><span style="color:#565F89"></span></div></div></div>
+    <div class="sec-title">它能干什么</div>
+    <div class="note">切换全局/规则模式、给节点组选节点、看实时连接、看流量曲线。</div>
+    <div class="note warn"><b>与新 UI 的重叠：</b>切换节点、看连接、看流量——新 UI 全都做了，而且做成了原生界面。
+      面板的价值主要是「习惯了 Yacd 的用户」和「在电脑上远程管理」。
+      <br><br><b>建议：可以删</b>，但如果你或用户群习惯用 Yacd，保留成本也不高（就是一个网页入口）。</div>`);}
+function openRoutePanel(){
+  closeAll();closePanel('settings');
+  document.getElementById('routeBody').innerHTML=`
+    <div class="note">只有<b>开关打开</b>的规则才会写进内核配置（<code>enabledRules()</code>），
+    也才会出现在主页第二层。这里管理全部规则。</div>
+    <div class="sec-title">已启用 · ${RULES.filter(r=>r.enabled).length} 条（显示在主页）</div>
+    ${RULES.map((r,i)=>r.enabled?ruleRow(r,i):'').join('')}
+    <div class="sec-title">未启用 · ${RULES.filter(r=>!r.enabled).length} 条（不生效、不上主页）</div>
+    ${RULES.map((r,i)=>r.enabled?'':ruleRow(r,i)).join('')}`;
+  document.getElementById('routePanel').classList.add('show');}
+function ruleRow(r,i){
+  return`<div class="item">
+    <div class="lead" onclick="openRuleEditor(${i})"><div>${r.nm}</div>
+      <div class="sub">${r.match} → ${short(r.out)}</div></div>
+    <div class="toggle ${r.enabled?'on':''}" onclick="event.stopPropagation();toggleRule(${i})"></div></div>`;}
+function toggleRule(i){
+  RULES[i].enabled=!RULES[i].enabled;
+  closeAll();render();
+  if(document.getElementById('routePanel').classList.contains('show'))openRoutePanel();
+  toast(RULES[i].enabled?`「${RULES[i].nm}」已启用 → 出现在主页第二层`:`「${RULES[i].nm}」已停用`);}
+function openRuleEditor(i){
+  const r=i>=0?RULES[i]:{nm:"新规则",out:"HK-01",kind:"proxy",match:"",enabled:false};
+  window.__editOut=r.out;window.__editEnabled=r.enabled;
+  document.getElementById('edTitle').textContent=i>=0?r.nm:'新建规则';
+  document.getElementById('edBody').innerHTML=`
+    <div class="ed-field"><label>Route Name</label><div class="ed-input">${r.nm}</div></div>
+    <div class="ed-field"><label>匹配条件 match</label><div class="ed-input">${r.match||'（未设置）'}</div></div>
+    <div class="item"><div class="lead"><div>启用这条规则</div>
+      <div class="sub">关闭则不进内核配置，也不显示在主页第二层</div></div>
+      <div class="toggle ${r.enabled?'on':''}" onclick="event.stopPropagation();this.classList.toggle('on');window.__editEnabled=!window.__editEnabled"></div></div>
+    <div class="ed-field"><label>Applications</label><div class="ed-input">Not set</div></div>
+    <div class="ed-field"><label>domain</label><div class="ed-input">Not set</div></div>
+    <div class="ed-field"><label>dst ip / dst port</label><div class="ed-input">Not set</div></div>
+    <div class="ed-field"><label>src ip / src port</label><div class="ed-input">Not set</div></div>
+    <div class="ed-field"><label>protocol</label><div class="ed-input">Not set</div></div>
+    <div class="ed-field"><label>outbound（出站）</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${poolNodes().map(k=>`<div class="ed-pick ${k===r.out?'sel':''}" onclick="pickOut(this,'${k}')" style="flex:0 0 auto;min-width:70px">${NODE_DB[k].nm}</div>`).join('')}
+        <div class="ed-pick ${r.out==='DIRECT'?'sel':''}" onclick="pickOut(this,'DIRECT')" style="flex:0 0 auto">⚡ DIRECT</div>
+        <div class="ed-pick ${r.out==='BLOCK'?'sel':''}" onclick="pickOut(this,'BLOCK')" style="flex:0 0 auto">🚫 BLOCK</div></div></div>
+    <div class="note warn">打开编辑器时已重置出站暂存值，避免上次残留污染本条规则。</div>
+    <div class="btn" onclick="saveRule(${i})">保存</div>
+    <div class="btn alt" onclick="closePanel('editor')">取消</div>`;
+  closeAll();document.getElementById('editor').classList.add('show');}
+function pickOut(el,k){
+  document.querySelectorAll('#edBody .ed-pick').forEach(p=>p.classList.remove('sel'));
+  el.classList.add('sel');window.__editOut=k;}
+function saveRule(i){
+  if(i<0){
+    RULES.push({nm:"新规则",out:window.__editOut||"HK-01",kind:"proxy",x:0,y:0,
+      match:"（未设置）",enabled:window.__editEnabled===true});
+    toast(window.__editEnabled?'已新建并启用（已上主页）':'已新建，默认停用（不上主页）');
+  }else{
+    if(window.__editOut)RULES[i].out=window.__editOut;
+    if(window.__editEnabled!==undefined)RULES[i].enabled=window.__editEnabled;
+    toast(`规则「${RULES[i].nm}」已保存`);}
+  window.__editOut=null;window.__editEnabled=undefined;
+  closePanel('editor');
+  if(document.getElementById('routePanel').classList.contains('show'))openRoutePanel();
+  closeAll();render();}
+
+function togglePower(){
+  connected=!connected;
+  document.getElementById('powerBtn').classList.toggle('off',!connected);
+  document.getElementById('screen').classList.toggle('off',!connected);
+  document.getElementById('foot').textContent=
+    connected?'已连接 · 点卡片看链路，点空白处退出':'已停止 · 点 ⏻ 重新织网';
+  if(!connected){closeAll();lines.innerHTML=baseSvg;}}
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  document.getElementById('btnLatte').classList.toggle('on',t==='latte');
+  document.getElementById('btnMocha').classList.toggle('on',t==='mocha');
+  build();if(document.getElementById('settings').classList.contains('show'))openSettings();}
+function resetData(){
+  RULES=JSON.parse(JSON.stringify(RULES_INIT));
+  GROUPS=[{id:1,icon:"☁️",name:"多多云机场",type:0,nodes:["HK-01","HK-02","US-LAX","US-SJC","SG-01"],
+    url:"https://sub.duoduo.cloud/...",expire:"2027-03-01",used:"128 GB",total:"500 GB",updated:"2 小时前"},
+   {id:2,icon:"🗼",name:"灯塔",type:0,nodes:["灯塔-港03","灯塔-美07","灯塔-日02"],
+    url:"https://beacon.net/...",expire:"2026-11-20",used:"46 GB",total:"200 GB",updated:"昨天"}];
+  curGroup=1;connected=true;proxyApps=false;showAllIn=false;showAllOut=false;openNodeGroup=null;
+  document.getElementById('powerBtn').classList.remove('off');
+  document.getElementById('screen').classList.remove('off');
+  ['settings','editor','groupPanel','routePanel','infoPanel'].forEach(closePanel);
+  closeAll();render();toast('已重置');}
+function toggleGhost(){const r=RULES[0];
+  if(r.out==='US-SJC'){r.out='HK-01';toast('已恢复');}
+  else{r.out='US-SJC';toast('规则引用了未订阅节点 → 幽灵卡');}
+  closeAll();render();}
+
+document.addEventListener('touchstart',e=>{
+  if(document.getElementById('pop').classList.contains('on')||
+     document.getElementById('dlg').classList.contains('on')){
+    if(!e.target.closest('#pop')&&!e.target.closest('#dlg')&&
+       !e.target.closest('.panel')&&!e.target.closest('.dropdown'))closeAll();}},{passive:true});
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#pop')&&!e.target.closest('#dlg')&&!e.target.closest('.card')&&
+     !e.target.closest('.sub-pill')&&!e.target.closest('.dropdown')&&!e.target.closest('.panel'))closeAll();});
+
+document.documentElement.setAttribute('data-theme','latte');
+render();anim();
+</script>
+</body>
+</html>
