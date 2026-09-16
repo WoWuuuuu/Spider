@@ -1,5 +1,7 @@
 package io.nekohasekai.sagernet.bg.proto
 
+import android.os.SystemClock
+import io.nekohasekai.sagernet.SagerNet
 import io.nekohasekai.sagernet.aidl.SpeedDisplayData
 import io.nekohasekai.sagernet.aidl.TrafficData
 import io.nekohasekai.sagernet.bg.BaseService
@@ -18,6 +20,7 @@ class TrafficLooper
 ) {
 
     private var job: Job? = null
+    private var lastWakeLockRenew = 0L
     private val idMap = mutableMapOf<Long, TrafficUpdater.TrafficLooperData>() // id to 1 data
     private val tagMap = mutableMapOf<String, TrafficUpdater.TrafficLooperData>() // tag to 1 data
 
@@ -146,6 +149,15 @@ class TrafficLooper
                 }
                 mainTx += it.tx - it.txBase
                 mainRx += it.rx - it.rxBase
+            }
+
+            // renew sliding wakelock if traffic is flowing (throttled to at most once per 10 minutes)
+            if ((mainTxRate > 0L || mainRxRate > 0L) && DataStore.acquireWakeLock && !SagerNet.power.isPowerSaveMode) {
+                val now = SystemClock.elapsedRealtime()
+                if (now - lastWakeLockRenew > 10 * 60 * 1000L) {
+                    lastWakeLockRenew = now
+                    data.service.acquireWakeLock()
+                }
             }
 
             // speed

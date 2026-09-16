@@ -272,6 +272,7 @@
             app:summary="@string/metered_summary"
             app:title="@string/metered" />
         <SwitchPreference
+            app:defaultValue="false"
             app:icon="@drawable/baseline_developer_board_24"
             app:key="acquireWakeLock"
             app:summary="@string/acquire_wake_lock_summary"

@@ -45,8 +45,15 @@ class VpnService : BaseVpnService(),
     override var wakeLock: PowerManager.WakeLock? = null
 
     override fun acquireWakeLock() {
-        wakeLock = SagerNet.power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "sagernet:vpn")
-            .apply { acquire(4 * 3600 * 1000L) }
+        if (wakeLock == null) {
+            wakeLock = SagerNet.power.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "sagernet:vpn")
+        }
+        wakeLock?.apply {
+            runCatching {
+                if (isHeld) release()
+                acquire(BaseService.WAKELOCK_SLIDING_TIMEOUT)
+            }
+        }
     }
 
     @Suppress("EXPERIMENTAL_API_USAGE")

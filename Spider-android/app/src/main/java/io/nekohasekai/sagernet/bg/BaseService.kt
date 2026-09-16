@@ -28,6 +28,11 @@ import java.net.UnknownHostException
 
 class BaseService {
 
+    companion object {
+        /** 唤醒锁滑动窗口保底超时：2小时。在有网络活动、亮屏或网络切换时自动滑动续期 */
+        const val WAKELOCK_SLIDING_TIMEOUT = 2 * 3600 * 1000L
+    }
+
     enum class State(
         val canStop: Boolean = false,
         val started: Boolean = false,
@@ -41,7 +46,7 @@ class BaseService {
 
     interface ExpectedException
 
-    class Data internal constructor(private val service: Interface) {
+    class Data internal constructor(val service: Interface) {
         var state = State.Stopped
         var proxy: ProxyInstance? = null
         var notification: ServiceNotification? = null
@@ -50,6 +55,11 @@ class BaseService {
             when (intent.action) {
                 Intent.ACTION_SHUTDOWN -> service.persistStats()
                 Action.RELOAD -> service.reload()
+                Intent.ACTION_SCREEN_ON, Intent.ACTION_USER_PRESENT -> {
+                    if (DataStore.acquireWakeLock && !SagerNet.power.isPowerSaveMode) {
+                        service.acquireWakeLock()
+                    }
+                }
                 // Action.SWITCH_WAKE_LOCK -> runOnDefaultDispatcher { service.switchWakeLock() }
                 PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED -> {
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -291,6 +301,9 @@ class BaseService {
                 SagerNet.connectivity.getLinkProperties(it)?.also { link ->
                     SagerNet.underlyingNetwork = it
                     DataStore.vpnService?.updateUnderlyingNetwork()
+                    if (DataStore.acquireWakeLock && !SagerNet.power.isPowerSaveMode) {
+                        acquireWakeLock()
+                    }
                     //
                     val oldName = upstreamInterfaceName
                     if (oldName != link.interfaceName) {
@@ -344,6 +357,8 @@ class BaseService {
                     addAction(Action.RELOAD)
                     addAction(Intent.ACTION_SHUTDOWN)
                     addAction(Action.CLOSE)
+                    addAction(Intent.ACTION_SCREEN_ON)
+                    addAction(Intent.ACTION_USER_PRESENT)
                     // addAction(Action.SWITCH_WAKE_LOCK)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                         addAction(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED)
