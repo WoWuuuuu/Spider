@@ -624,7 +624,7 @@ class TopologyView @JvmOverloads constructor(
         }
         snap.outbounds.forEach { card ->
             boxes[card.id]?.let {
-                drawCard(canvas, it, card.title, card.subtitle, palette.outStrokeOf(card.kind))
+                drawCard(canvas, it, card.title, card.subtitle, palette.outStrokeOf(card.kind), isOutbound = true)
             }
         }
         boxes[ID_RULE_MORE]?.let { drawCapsule(canvas, it, snap.ruleOverflow) }
@@ -713,6 +713,7 @@ class TopologyView @JvmOverloads constructor(
         title: String,
         subtitle: String,
         strokeColor: Int,
+        isOutbound: Boolean = false,
     ) {
         val l = box.cx - box.w / 2f
         val t = box.cy - box.h / 2f
@@ -720,10 +721,44 @@ class TopologyView @JvmOverloads constructor(
         val b = t + box.h
         val radius = minOf(box.h * 0.24f, 11f * density)
 
+        if (isOutbound) {
+            val auraExpand = 3.5f * density
+            val auraRadius = radius + auraExpand
+            fillPaint.color = strokeColor
+            fillPaint.alpha = 48
+            canvas.drawRoundRect(l - auraExpand, t - auraExpand, r + auraExpand, b + auraExpand, auraRadius, auraRadius, fillPaint)
+        }
+
         fillPaint.color = palette.cardFill
+        fillPaint.alpha = 255
         canvas.drawRoundRect(l, t, r, b, radius, radius, fillPaint)
         strokePaint.color = strokeColor
+        strokePaint.alpha = 255
         canvas.drawRoundRect(l, t, r, b, radius, radius, strokePaint)
+
+        if (isOutbound) {
+            val badgeW = 18f * density
+            val badgeH = 11f * density
+            val badgeR = badgeH / 2f
+            val badgeRight = r - 5f * density
+            val badgeTop = t + 4f * density
+            val badgeLeft = badgeRight - badgeW
+            val badgeBottom = badgeTop + badgeH
+
+            fillPaint.color = strokeColor
+            fillPaint.alpha = 50
+            canvas.drawRoundRect(badgeLeft, badgeTop, badgeRight, badgeBottom, badgeR, badgeR, fillPaint)
+            fillPaint.alpha = 255
+
+            textPaint.typeface = Typeface.DEFAULT_BOLD
+            textPaint.textSize = 8.5f * density
+            textPaint.color = strokeColor
+            val badgeText = "⇄"
+            val bw = textPaint.measureText(badgeText)
+            val bFm = textPaint.fontMetrics
+            val bBaseline = (badgeTop + badgeBottom) / 2f - (bFm.ascent + bFm.descent) / 2f
+            canvas.drawText(badgeText, badgeLeft + (badgeW - bw) / 2f, bBaseline, textPaint)
+        }
 
         val pad = box.w * 0.10f
         val maxW = box.w - pad * 2f

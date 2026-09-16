@@ -1358,6 +1358,9 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
                     refresh()
                 }
 
+                /* ② 默认分流卡 → 打开节点选择器选主代理 */
+                hit.id == TopologyRepository.ID_DEFAULT_RULE -> openNodePicker()
+
                 /* ② 规则卡 → 规则编辑页。必须传 EXTRA_ROUTE_ID：
                    它会在 RouteSettingsActivity 里写 DataStore.editingId，
                    不传的话会当成「新建规则」。 */
@@ -1374,15 +1377,9 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
                    单击 = 换人（打开节点选择器）—— 原来这里在未选中时直接 return，等于一个死键，
                    而新 UI 里又再没有第二个能选节点的地方。
                    编辑当前节点挪到长按（见 [onCardLongClick]）。 */
-                hit.id == TopologyRepository.ID_MAIN -> openNodePicker()
+                hit.id == TopologyRepository.ID_MAIN || hit.id.startsWith("ou-") -> openNodePicker()
 
-                hit.id.startsWith("ou-") -> {
-                    val profileId = hit.id.removePrefix("ou-").toLongOrNull() ?: return
-                    openProfile(profileId)
-                }
-
-                /* 直连 / 拦截不是可编辑实体，点了不做任何事（它们表达的是「动作」，
-                   没有对应的设置页可开）。 */
+                /* 直连 / 拦截不是可编辑实体，点了不做任何事 */
                 else -> Unit
             }
         }
@@ -1407,19 +1404,13 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
                 snackbar(getString(R.string.topology_detail_copied, text))
             }
 
-            /* ② 规则卡长按 → 快速换出口节点（唯一一条写操作） */
+            /* ② 出站卡 / 默认分流卡长按 → 打开节点选择器 */
             is TopologyHit.Card -> {
-                /* 「走主代理」卡长按 → 编辑当前节点（单击已经被改成「换人」了，
-                   不这么分的话当前节点就没有入口能编辑）。 */
-                if (hit.id == TopologyRepository.ID_MAIN) {
-                    val mainId = DataStore.selectedProxy
-                    if (mainId == 0L) {
-                        snackbar(R.string.topology_need_node).setAction(R.string.topology_pick_node) {
-                            openNodePicker()
-                        }.show()
-                    } else {
-                        openProfile(mainId)
-                    }
+                if (hit.id == TopologyRepository.ID_DEFAULT_RULE ||
+                    hit.id == TopologyRepository.ID_MAIN ||
+                    hit.id.startsWith("ou-")
+                ) {
+                    openNodePicker()
                     return
                 }
                 if (!hit.id.startsWith("ru-")) return

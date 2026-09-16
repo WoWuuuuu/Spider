@@ -66,9 +66,8 @@ class MainActivity : ThemedActivity(),
         onBackPressedDispatcher.addCallback {
             if (supportFragmentManager.backStackEntryCount > 0) {
                 supportFragmentManager.popBackStack()
-            } else if (supportFragmentManager.findFragmentById(R.id.fragment_holder)
-                    .let { it is ConfigurationFragment || it is TopologyFragment }) {
-                // 新旧主页在返回键上行为一致：退到后台而不是回退到「自己」
+            } else if (supportFragmentManager.findFragmentById(R.id.fragment_holder) is TopologyFragment) {
+                // 主页在返回键上直接退到后台
                 moveTaskToBack(true)
             } else {
                 navigateTo(DEST_HOME)
@@ -301,12 +300,10 @@ class MainActivity : ThemedActivity(),
            `StatsBar.YourBehavior.slideDown` 开头就是 `if (!getAllowShow()) return`，
            而 `allowShow` 正是想关它时要置 false 的那个标志，
            所以 `allowShow = false` + `performHide()` 是**互相抵消**的，什么都不会发生。 */
-        if (fragment is TopologyFragment) {
+        if (fragment is TopologyFragment || !DataStore.showBottomBar) {
             binding.fab.hide()
-        } else if (fragment is ConfigurationFragment || DataStore.showBottomBar) {
-            binding.fab.show()
         } else {
-            binding.fab.hide()
+            binding.fab.show()
         }
         supportFragmentManager.beginTransaction()
             .replace(R.id.fragment_holder, fragment)

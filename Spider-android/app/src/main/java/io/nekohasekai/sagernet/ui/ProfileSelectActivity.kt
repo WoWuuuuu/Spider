@@ -5,8 +5,7 @@ import android.os.Bundle
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.database.ProxyEntity
 
-class ProfileSelectActivity : ThemedActivity(R.layout.layout_empty),
-    ConfigurationFragment.SelectCallback {
+class ProfileSelectActivity : BaseNodeSelectActivity() {
 
     companion object {
         const val EXTRA_SELECTED = "selected"
@@ -14,19 +13,16 @@ class ProfileSelectActivity : ThemedActivity(R.layout.layout_empty),
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
         val selected = intent.getParcelableExtra<ProxyEntity>(EXTRA_SELECTED)
-
-        supportFragmentManager.beginTransaction()
-            .replace(
-                R.id.fragment_holder,
-                ConfigurationFragment(true, selected, R.string.select_profile)
-            )
-            .commitAllowingStateLoss()
+        if (selected != null) {
+            initialSelectedId = selected.id
+        }
+        super.onCreate(savedInstanceState)
     }
 
-    override fun returnProfile(profileId: Long) {
+    override fun getTitleTextRes(): Int = R.string.select_profile
+
+    override fun onProfileSelected(profileId: Long) {
         setResult(RESULT_OK, Intent().apply {
             putExtra(EXTRA_PROFILE_ID, profileId)
         })

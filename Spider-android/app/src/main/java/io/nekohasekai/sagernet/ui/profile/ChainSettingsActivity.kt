@@ -3,6 +3,7 @@ package io.nekohasekai.sagernet.ui.profile
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.text.format.Formatter
 import android.view.View
@@ -23,7 +24,7 @@ import io.nekohasekai.sagernet.database.DataStore
 import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.databinding.LayoutAddEntityBinding
-import io.nekohasekai.sagernet.databinding.LayoutProfileBinding
+import io.nekohasekai.sagernet.databinding.LayoutChainProfileItemBinding
 import io.nekohasekai.sagernet.fmt.internal.ChainBean
 import io.nekohasekai.sagernet.ktx.*
 import io.nekohasekai.sagernet.ui.ProfileSelectActivity
@@ -139,12 +140,14 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
             proxyList[to - 1] = proxyList[from - 1]
             proxyList[from - 1] = toMove
             notifyItemMoved(from, to)
+            notifyItemRangeChanged(minOf(from, to), kotlin.math.abs(from - to) + 1)
             DataStore.dirty = true
         }
 
         fun remove(index: Int) {
             proxyList.removeAt(index - 1)
             notifyItemRemoved(index)
+            notifyItemRangeChanged(index, (proxyList.size - index + 2).coerceAtLeast(0))
             DataStore.dirty = true
         }
 
@@ -160,7 +163,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
             return if (viewType == 0) {
                 AddHolder(LayoutAddEntityBinding.inflate(layoutInflater, parent, false))
             } else {
-                ProfileHolder(LayoutProfileBinding.inflate(layoutInflater, parent, false))
+                ProfileHolder(LayoutChainProfileItemBinding.inflate(layoutInflater, parent, false))
             }
         }
 
@@ -168,7 +171,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
             if (holder is AddHolder) {
                 holder.bind()
             } else if (holder is ProfileHolder) {
-                holder.bind(proxyList[position - 1])
+                holder.bind(proxyList[position - 1], position - 1, proxyList.size)
             }
         }
 
@@ -250,24 +253,52 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
         }
     }
 
-    inner class ProfileHolder(binding: LayoutProfileBinding) :
+    inner class ProfileHolder(val binding: LayoutChainProfileItemBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
         val profileName = binding.profileName
+        val profileAddress = binding.profileAddress
         val profileType = binding.profileType
+        val pingText = binding.pingText
         val trafficText: TextView = binding.trafficText
+        val stepIndex = binding.chainStepIndex
+        val stepRole = binding.chainStepRole
+        val arrowFlow = binding.chainArrowFlow
         val editButton = binding.edit
         val shareLayout = binding.share
 
-        fun bind(proxyEntity: ProxyEntity) {
+        fun bind(proxyEntity: ProxyEntity, index: Int, total: Int) {
+            stepIndex.text = (index + 1).toString()
+            stepRole.text = when {
+                index == 0 -> "入口"
+                index == total - 1 -> "出口"
+                else -> "中转"
+            }
+
+            arrowFlow.isVisible = (index < total - 1)
 
             profileName.text = proxyEntity.displayName()
+            val addr = runCatching { proxyEntity.displayAddress() }.getOrNull()
+            profileAddress.isVisible = !addr.isNullOrBlank()
+            profileAddress.text = addr.orEmpty()
+
             profileType.text = proxyEntity.displayType()
             profileType.setTextColor(getProtocolColor(proxyEntity.type))
 
+            if (proxyEntity.ping > 0) {
+                pingText.isVisible = true
+                pingText.text = "${proxyEntity.ping} ms"
+                pingText.setTextColor(when {
+                    proxyEntity.ping < 200 -> Color.parseColor("#4CAF50")
+                    proxyEntity.ping < 500 -> Color.parseColor("#FF9800")
+                    else -> Color.parseColor("#F44336")
+                })
+            } else {
+                pingText.isVisible = false
+            }
+
             val rx = proxyEntity.rx
             val tx = proxyEntity.tx
-
             val showTraffic = rx + tx != 0L
             trafficText.isVisible = showTraffic
             if (showTraffic) {
@@ -278,7 +309,7 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
                 )
             }
 
-            editButton.setOnClickListener {
+            val changeAction = View.OnClickListener {
                 replacing = bindingAdapterPosition
                 selectProfileForAdd.launch(Intent(
                     this@ChainSettingsActivity, ProfileSelectActivity::class.java
@@ -286,7 +317,8 @@ class ChainSettingsActivity : ProfileSettingsActivity<ChainBean>(R.layout.layout
                     putExtra(ProfileSelectActivity.EXTRA_SELECTED, proxyEntity)
                 })
             }
-
+            binding.card.setOnClickListener(changeAction)
+            editButton.setOnClickListener(changeAction)
             shareLayout.isVisible = false
         }
 
