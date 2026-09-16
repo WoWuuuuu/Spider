@@ -33,6 +33,7 @@ import io.nekohasekai.sagernet.database.ProfileManager
 import io.nekohasekai.sagernet.database.ProxyEntity
 import io.nekohasekai.sagernet.database.ProxyGroup
 import io.nekohasekai.sagernet.database.SagerDatabase
+import io.nekohasekai.sagernet.ktx.Logs
 import io.nekohasekai.sagernet.ktx.onMainDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
@@ -170,11 +171,12 @@ abstract class BaseNodeSelectActivity : ThemedActivity(R.layout.layout_node_sele
 
         val queue = ConcurrentLinkedQueue(targets)
         val finishedCount = AtomicInteger(0)
-        val concurrency = minOf(6, targets.size)
+        val concurrency = minOf(3, targets.size)
 
         lifecycleScope.launch(Dispatchers.IO) {
-            val jobs = (1..concurrency).map {
+            val jobs = (0 until concurrency).map { workerIndex ->
                 launch {
+                    if (workerIndex > 0) kotlinx.coroutines.delay(workerIndex * 150L)
                     val tester = UrlTest()
                     while (isActive) {
                         val entity = queue.poll() ?: break
@@ -183,6 +185,7 @@ abstract class BaseNodeSelectActivity : ThemedActivity(R.layout.layout_node_sele
                             entity.status = 1
                             entity.ping = ping
                         } catch (e: Exception) {
+                            Logs.w("UrlTest batch error on #${entity.id}: ${e.message}", e)
                             entity.status = 2
                             entity.ping = -1
                         }
@@ -214,6 +217,7 @@ abstract class BaseNodeSelectActivity : ThemedActivity(R.layout.layout_node_sele
                 entity.status = 1
                 entity.ping = ping
             } catch (e: Exception) {
+                Logs.w("UrlTest single error on #${entity.id}: ${e.message}", e)
                 entity.status = 2
                 entity.ping = -1
             }

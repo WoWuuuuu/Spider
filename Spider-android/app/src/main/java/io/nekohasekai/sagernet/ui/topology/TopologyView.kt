@@ -721,7 +721,8 @@ class TopologyView @JvmOverloads constructor(
         }
         snap.outbounds.forEach { card ->
             boxes[card.id]?.let {
-                drawCard(canvas, it, card.title, card.subtitle, palette.outStrokeOf(card.kind), isOutbound = true)
+                val canSwitch = card.id != "ou-bypass" && card.id != "ou-block"
+                drawCard(canvas, it, card.title, card.subtitle, palette.outStrokeOf(card.kind), isOutbound = canSwitch)
             }
         }
         boxes[ID_RULE_MORE]?.let { drawCapsule(canvas, it, snap.ruleOverflow) }
