@@ -317,6 +317,51 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
         selectMainNode(profileId)
     }
 
+    private var pendingOutboundProfileId: Long = 0L
+
+    /**
+     * 单击 ③ 层具体出站节点卡片（ou-$profileId）→ 更换该节点。
+     * 精准更新指向该节点的所有规则，不影响主代理和其他规则节点！
+     */
+    private val pickOutboundProfile = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val oldProfileId = pendingOutboundProfileId
+        pendingOutboundProfileId = 0L
+        if (result.resultCode != Activity.RESULT_OK || oldProfileId == 0L) {
+            return@registerForActivityResult
+        }
+        val newProfileId = result.data?.getLongExtra(ProfileSelectActivity.EXTRA_PROFILE_ID, 0L) ?: 0L
+        if (newProfileId == 0L || newProfileId == oldProfileId) return@registerForActivityResult
+
+        lifecycleScope.launch(Dispatchers.Default) {
+            val currentGroup = DataStore.currentGroupId()
+            val allRules = SagerDatabase.rulesDao.allRules()
+            val affectedRules = allRules.filter { it.outbound == oldProfileId }
+            for (rule in affectedRules) {
+                rule.outbound = newProfileId
+                ProfileManager.updateRule(rule)
+                DataStore.setGroupRuleOutbound(currentGroup, rule.id, newProfileId)
+            }
+            onMainDispatcher {
+                if (DataStore.serviceState.canStop) needReload()
+                refresh()
+            }
+        }
+    }
+
+    private fun openOutboundPicker(profileId: Long) {
+        pendingOutboundProfileId = profileId
+        lifecycleScope.launch(Dispatchers.Default) {
+            val entity = ProfileManager.getProfile(profileId)
+            onMainDispatcher {
+                val intent = Intent(requireContext(), ProfileSelectActivity::class.java)
+                if (entity != null) intent.putExtra(ProfileSelectActivity.EXTRA_SELECTED, entity)
+                pickOutboundProfile.launch(intent)
+            }
+        }
+    }
+
     /**
      * 把某个节点设为「主代理」。
      *
@@ -802,6 +847,8 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
 
             is DropRow.Group -> {
                 if (!row.current) {
+                    val oldGroupId = DataStore.selectedGroup
+                    saveCurrentGroupState(oldGroupId)
                     DataStore.selectedGroup = row.group.id
                     updateGroupLabel(row.group.displayName())
                     ruleExpanded = false
@@ -829,12 +876,29 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
     }
 
     /**
+     * 离开当前组前，全量持久化当前组的主代理节点及每条规则的出站设定。
+     */
+    private fun saveCurrentGroupState(groupId: Long) {
+        if (groupId <= 0L) return
+        val currentProxy = DataStore.selectedProxy
+        if (currentProxy > 0L) {
+            DataStore.setGroupSelectedProxy(groupId, currentProxy)
+        }
+        val rules = SagerDatabase.rulesDao.allRules()
+        for (rule in rules) {
+            DataStore.setGroupRuleOutbound(groupId, rule.id, rule.outbound)
+        }
+    }
+
+    /**
      * 切换分组并恢复该组专属的选定主节点与规则-节点配对关系。
+     * 支持用户添加的任意 N 个分组，具备自愈隔离与防泄漏保护。
      */
     private fun switchGroupState(groupId: Long) {
         lifecycleScope.launch(Dispatchers.Default) {
             val remembered = DataStore.getGroupSelectedProxy(groupId)
-            val activeId = if (remembered > 0L && SagerDatabase.proxyDao.getById(remembered)?.groupId == groupId) {
+            val rememberedEntity = if (remembered > 0L) SagerDatabase.proxyDao.getById(remembered) else null
+            val activeId = if (rememberedEntity != null && rememberedEntity.groupId == groupId) {
                 remembered
             } else {
                 val groupNodes = SagerDatabase.proxyDao.getByGroup(groupId)
@@ -842,7 +906,7 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
                 if (firstId > 0L) DataStore.setGroupSelectedProxy(groupId, firstId)
                 firstId
             }
-            if (activeId > 0L && activeId != DataStore.selectedProxy) {
+            if (activeId != DataStore.selectedProxy) {
                 val last = DataStore.selectedProxy
                 DataStore.selectedProxy = activeId
                 ProfileManager.postUpdate(last)
@@ -854,10 +918,34 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
             for (rule in rules) {
                 val savedOutbound = DataStore.getGroupRuleOutbound(groupId, rule.id)
                 if (savedOutbound != null) {
-                    if (savedOutbound <= 0L || SagerDatabase.proxyDao.getById(savedOutbound) != null) {
+                    if (savedOutbound <= 0L) {
                         if (rule.outbound != savedOutbound) {
                             rule.outbound = savedOutbound
                             ProfileManager.updateRule(rule)
+                        }
+                    } else {
+                        val node = SagerDatabase.proxyDao.getById(savedOutbound)
+                        if (node != null && node.groupId == groupId) {
+                            if (rule.outbound != savedOutbound) {
+                                rule.outbound = savedOutbound
+                                ProfileManager.updateRule(rule)
+                            }
+                        } else {
+                            // 记忆节点已不存在或属于别的分组，安全回退到 0L（走主代理）
+                            rule.outbound = 0L
+                            ProfileManager.updateRule(rule)
+                            DataStore.setGroupRuleOutbound(groupId, rule.id, 0L)
+                        }
+                    }
+                } else {
+                    // 该组尚未单独配置此规则的出站
+                    if (rule.outbound > 0L) {
+                        val node = SagerDatabase.proxyDao.getById(rule.outbound)
+                        if (node == null || node.groupId != groupId) {
+                            // 当前指向的节点不属于目标组，安全回退到 0L（走主代理）
+                            rule.outbound = 0L
+                            ProfileManager.updateRule(rule)
+                            DataStore.setGroupRuleOutbound(groupId, rule.id, 0L)
                         }
                     }
                 }
@@ -1332,7 +1420,7 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
      */
     private fun applySnapshot(snapshot: TopologySnapshot) {
         topologyView?.snapshot = snapshot
-        summaryView?.text = buildSummary(snapshot)
+        summaryView?.visibility = View.GONE
         refreshOpenDetail(snapshot)
     }
 
@@ -1429,12 +1517,20 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
                     )
                 }
 
-                /* ③ 出站卡 → 节点编辑页。
-                   ⚠ 例外：「走主代理」卡不是「某个节点的卡」，它是**当前节点这个位置本身**。
-                   单击 = 换人（打开节点选择器）—— 原来这里在未选中时直接 return，等于一个死键，
-                   而新 UI 里又再没有第二个能选节点的地方。
-                   编辑当前节点挪到长按（见 [onCardLongClick]）。 */
-                hit.id == TopologyRepository.ID_MAIN || hit.id.startsWith("ou-") -> openNodePicker()
+                /* ③ 出站卡：
+                   - ou-bypass / ou-block：不可更改，静默忽略
+                   - ID_MAIN（走主代理卡）：换当前组的主代理
+                   - ou-$profileId（具体出站节点卡）：仅更换使用该节点的各规则的出站，绝不影响主代理和其他节点 */
+                hit.id == "ou-bypass" || hit.id == "ou-block" -> Unit
+
+                hit.id == TopologyRepository.ID_MAIN -> openNodePicker()
+
+                hit.id.startsWith("ou-") -> {
+                    val profileId = hit.id.removePrefix("ou-").toLongOrNull()
+                    if (profileId != null && profileId > 0L) {
+                        openOutboundPicker(profileId)
+                    }
+                }
 
                 /* 直连 / 拦截不是可编辑实体，点了不做任何事 */
                 else -> Unit
@@ -1461,13 +1557,20 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
                 snackbar(getString(R.string.topology_detail_copied, text))
             }
 
-            /* ② 出站卡 / 默认分流卡长按 → 打开节点选择器 */
+            /* ② 出站卡 / 默认分流卡长按 */
             is TopologyHit.Card -> {
+                if (hit.id == "ou-bypass" || hit.id == "ou-block") {
+                    return
+                }
                 if (hit.id == TopologyRepository.ID_DEFAULT_RULE ||
-                    hit.id == TopologyRepository.ID_MAIN ||
-                    hit.id.startsWith("ou-")
+                    hit.id == TopologyRepository.ID_MAIN
                 ) {
                     openNodePicker()
+                    return
+                }
+                if (hit.id.startsWith("ou-")) {
+                    val profileId = hit.id.removePrefix("ou-").toLongOrNull() ?: return
+                    openProfile(profileId)
                     return
                 }
                 if (!hit.id.startsWith("ru-")) return
