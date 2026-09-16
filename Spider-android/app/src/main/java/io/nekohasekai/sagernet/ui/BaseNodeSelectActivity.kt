@@ -15,7 +15,7 @@ import androidx.annotation.StringRes
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.card.MaterialCardView
@@ -23,7 +23,6 @@ import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.tabs.TabLayout
 import io.nekohasekai.sagernet.GroupOrder
 import io.nekohasekai.sagernet.R
 import io.nekohasekai.sagernet.aidl.TrafficData
@@ -51,7 +50,6 @@ abstract class BaseNodeSelectActivity : ThemedActivity(R.layout.layout_node_sele
     lateinit var progressTest: LinearProgressIndicator
     lateinit var searchInput: EditText
     lateinit var btnClearSearch: ImageView
-    lateinit var tabGroups: TabLayout
     lateinit var nodeList: RecyclerView
     lateinit var emptyView: View
     lateinit var emptyText: TextView
@@ -78,11 +76,10 @@ abstract class BaseNodeSelectActivity : ThemedActivity(R.layout.layout_node_sele
         progressTest = findViewById(R.id.progress_test)
         searchInput = findViewById(R.id.search_input)
         btnClearSearch = findViewById(R.id.btn_clear_search)
-        tabGroups = findViewById(R.id.tab_groups)
         nodeList = findViewById(R.id.node_list)
         emptyView = findViewById(R.id.empty_view)
         emptyText = findViewById(R.id.empty_text)
-        selectedGroupId = DataStore.selectedGroup
+        selectedGroupId = DataStore.currentGroupId()
 
         toolbar.setTitle(getTitleTextRes())
         toolbar.setNavigationOnClickListener {
@@ -104,7 +101,13 @@ abstract class BaseNodeSelectActivity : ThemedActivity(R.layout.layout_node_sele
             }
         }
 
-        nodeList.layoutManager = LinearLayoutManager(this)
+        val screenWidthDp = resources.configuration.screenWidthDp
+        val spanCount = when {
+            screenWidthDp >= 840 -> 3
+            screenWidthDp >= 600 -> 2
+            else -> 1
+        }
+        nodeList.layoutManager = androidx.recyclerview.widget.GridLayoutManager(this, spanCount)
         nodeList.adapter = adapter
 
         btnClearSearch.setOnClickListener {
@@ -121,16 +124,6 @@ abstract class BaseNodeSelectActivity : ThemedActivity(R.layout.layout_node_sele
             }
         })
 
-        tabGroups.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                selectedGroupId = (tab?.tag as? Long) ?: 0L
-                applyFilter()
-            }
-
-            override fun onTabUnselected(tab: TabLayout.Tab?) = Unit
-            override fun onTabReselected(tab: TabLayout.Tab?) = Unit
-        })
-
         ProfileManager.addListener(this)
         GroupManager.addListener(this)
 
@@ -145,22 +138,16 @@ abstract class BaseNodeSelectActivity : ThemedActivity(R.layout.layout_node_sele
 
     private fun showSortDialog() {
         val sortOptions = arrayOf(
-            getString(R.string.sort_origin),
             getString(R.string.sort_by_delay),
             getString(R.string.sort_by_name)
         )
-        val selectedIndex = when (currentOrder) {
-            GroupOrder.BY_DELAY -> 1
-            GroupOrder.BY_NAME -> 2
-            else -> 0
-        }
+        val selectedIndex = if (currentOrder == GroupOrder.BY_NAME) 1 else 0
         MaterialAlertDialogBuilder(this)
             .setTitle(R.string.action_sort)
             .setSingleChoiceItems(sortOptions, selectedIndex) { dialog, which ->
                 currentOrder = when (which) {
-                    1 -> GroupOrder.BY_DELAY
-                    2 -> GroupOrder.BY_NAME
-                    else -> GroupOrder.ORIGIN
+                    1 -> GroupOrder.BY_NAME
+                    else -> GroupOrder.BY_DELAY
                 }
                 applyFilter()
                 dialog.dismiss()
@@ -246,32 +233,11 @@ abstract class BaseNodeSelectActivity : ThemedActivity(R.layout.layout_node_sele
             allProfiles = SagerDatabase.proxyDao.getAll().sortedBy { it.userOrder }
 
             withContext(Dispatchers.Main) {
-                setupTabs()
+                val currentGroup = allGroups.find { it.id == selectedGroupId } ?: DataStore.currentGroup()
+                toolbar.subtitle = currentGroup.displayName()
                 applyFilter()
             }
         }
-    }
-
-    private fun setupTabs() {
-        val currentTag = selectedGroupId
-        tabGroups.removeAllTabs()
-
-        val allTab = tabGroups.newTab().setText(R.string.filter_all)
-        allTab.tag = 0L
-        tabGroups.addTab(allTab)
-
-        var selectTab = allTab
-        for (group in allGroups) {
-            val groupName = group.displayName()
-            val tab = tabGroups.newTab().setText(groupName)
-            tab.tag = group.id
-            tabGroups.addTab(tab)
-            if (group.id == currentTag) {
-                selectTab = tab
-            }
-        }
-
-        selectTab.select()
     }
 
     private fun applyFilter() {

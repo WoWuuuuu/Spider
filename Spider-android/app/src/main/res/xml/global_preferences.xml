@@ -13,6 +13,11 @@
             app:key="proxyApps"
             app:summary="@string/proxied_apps_summary"
             app:title="@string/proxied_apps" />
+        <Preference
+            app:dependency="proxyApps"
+            app:key="proxyAppsManageLink"
+            app:summary="@string/manage_proxied_apps_summary"
+            app:title="@string/manage_proxied_apps" />
         <SwitchPreference
             app:icon="@drawable/ic_baseline_legend_toggle_24"
             app:key="bypassLan"

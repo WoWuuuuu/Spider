@@ -30,6 +30,8 @@ object TopologyEdges {
      */
     class Curve(
         val id: String,
+        val fromId: String = "",
+        val toId: String = "",
         val kind: TopologyKind,
         val dashed: Boolean,
         /** 属于哪一段。①→② 用入站色，②→③ 用出站色 —— 见 [TopologyView.drawEdges] */
@@ -123,6 +125,8 @@ object TopologyEdges {
 
             Curve(
                 id = "${o.edge.fromId}>${o.edge.toId}",
+                fromId = o.edge.fromId,
+                toId = o.edge.toId,
                 kind = o.edge.kind,
                 dashed = o.edge.dashed,
                 stage = o.edge.stage,

@@ -79,25 +79,6 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- 分组横向切换 TabLayout -->
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tab_groups"
-        android:layout_width="match_parent"
-        android:layout_height="42dp"
-        android:background="?android:attr/colorBackground"
-        app:tabIndicatorColor="?attr/colorPrimary"
-        app:tabIndicatorFullWidth="false"
-        app:tabIndicatorHeight="3dp"
-        app:tabMode="scrollable"
-        app:tabRippleColor="@null"
-        app:tabSelectedTextColor="?attr/colorPrimary"
-        app:tabTextColor="?android:attr/textColorSecondary" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="#1F808080" />
-
     <!-- 节点列表区域与空状态 -->
     <FrameLayout
         android:layout_width="match_parent"
@@ -109,7 +90,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingTop="8dp"
+            android:paddingHorizontal="8dp"
+            android:paddingTop="6dp"
             android:paddingBottom="24dp"
             tools:listitem="@layout/layout_node_item_modern" />
 

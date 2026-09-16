@@ -84,6 +84,24 @@ object DataStore : OnPreferenceDataStoreChangeListener {
         return groups.find { it.type == GroupType.BASIC }!!.id
     }
 
+    fun getGroupSelectedProxy(groupId: Long): Long {
+        return configurationStore.getLong("group_selected_proxy_$groupId", 0L)
+    }
+
+    fun setGroupSelectedProxy(groupId: Long, proxyId: Long) {
+        configurationStore.putLong("group_selected_proxy_$groupId", proxyId)
+    }
+
+    fun getGroupRuleOutbound(groupId: Long, ruleId: Long): Long? {
+        val key = "group_rule_outbound_${groupId}_$ruleId"
+        val v = configurationStore.getLong(key, -99999L)
+        return if (v != -99999L) v else null
+    }
+
+    fun setGroupRuleOutbound(groupId: Long, ruleId: Long, outbound: Long) {
+        configurationStore.putLong("group_rule_outbound_${groupId}_$ruleId", outbound)
+    }
+
     var appTLSVersion by configurationStore.string(Key.APP_TLS_VERSION)
     var clashApiDefaultSet by configurationStore.boolean("clashApiDefaultSet") { false }
     var enableClashAPI by configurationStore.boolean(Key.ENABLE_CLASH_API) { true }

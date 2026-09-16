@@ -285,6 +285,8 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
             /* suspend：内部先 rulesDao.updateRule，再 ruleIterator { onUpdated() } 通知出去。
                少了后半步，界面显示的还是旧值。 */
             ProfileManager.updateRule(rule)
+            val currentGroup = DataStore.currentGroupId()
+            DataStore.setGroupRuleOutbound(currentGroup, rule.id, profileId)
             onMainDispatcher {
                 /* 必须让用户**确认后**再重载 —— 静默 reload 会在用户不知情时打断连接。
                    老系统一贯如此（plan §2.1 第 2 点）。 */
@@ -327,6 +329,8 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
      */
     private fun selectMainNode(profileId: Long) {
         runOnDefaultDispatcher {
+            val currentGroup = DataStore.currentGroupId()
+            DataStore.setGroupSelectedProxy(currentGroup, profileId)
             val lastSelected = DataStore.selectedProxy
             if (lastSelected == profileId) return@runOnDefaultDispatcher
             DataStore.selectedProxy = profileId
@@ -800,14 +804,9 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
                 if (!row.current) {
                     DataStore.selectedGroup = row.group.id
                     updateGroupLabel(row.group.displayName())
-                    /* 换分组**不** needReload：内核按 `rule.outbound` 全库取节点，
-                       和「当前分组」无关（ConfigBuilder.kt:126-130），
-                       重载只会平白打断连接。 */
-                    /* 但 ②③ 两层的展开态都要复位 —— 换了组就是另一批规则/节点，
-                       沿用旧的展开态会让用户莫名其妙地看到一张更长的列表。 */
                     ruleExpanded = false
                     outExpanded = false
-                    refresh()
+                    switchGroupState(row.group.id)
                 }
             }
 
@@ -825,6 +824,48 @@ class TopologyFragment : ToolbarFragment(R.layout.layout_topology) {
                     startActivity(Intent(requireContext(), GroupSettingsActivity::class.java))
 
                 ACTION_MANUAL -> showAddPanel()
+            }
+        }
+    }
+
+    /**
+     * 切换分组并恢复该组专属的选定主节点与规则-节点配对关系。
+     */
+    private fun switchGroupState(groupId: Long) {
+        lifecycleScope.launch(Dispatchers.Default) {
+            val remembered = DataStore.getGroupSelectedProxy(groupId)
+            val activeId = if (remembered > 0L && SagerDatabase.proxyDao.getById(remembered)?.groupId == groupId) {
+                remembered
+            } else {
+                val groupNodes = SagerDatabase.proxyDao.getByGroup(groupId)
+                val firstId = groupNodes.firstOrNull()?.id ?: 0L
+                if (firstId > 0L) DataStore.setGroupSelectedProxy(groupId, firstId)
+                firstId
+            }
+            if (activeId > 0L && activeId != DataStore.selectedProxy) {
+                val last = DataStore.selectedProxy
+                DataStore.selectedProxy = activeId
+                ProfileManager.postUpdate(last)
+                ProfileManager.postUpdate(activeId)
+            }
+
+            // 恢复该组专属的规则配对
+            val rules = SagerDatabase.rulesDao.allRules()
+            for (rule in rules) {
+                val savedOutbound = DataStore.getGroupRuleOutbound(groupId, rule.id)
+                if (savedOutbound != null) {
+                    if (savedOutbound <= 0L || SagerDatabase.proxyDao.getById(savedOutbound) != null) {
+                        if (rule.outbound != savedOutbound) {
+                            rule.outbound = savedOutbound
+                            ProfileManager.updateRule(rule)
+                        }
+                    }
+                }
+            }
+
+            onMainDispatcher {
+                refresh()
+                if (DataStore.serviceState.canStop) needReload()
             }
         }
     }

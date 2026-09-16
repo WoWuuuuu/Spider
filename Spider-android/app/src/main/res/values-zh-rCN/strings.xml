@@ -100,6 +100,8 @@
     <string name="menu_route">路由</string>
     <string name="proxied_apps">分应用代理</string>
     <string name="proxied_apps_summary">代理被勾选应用的流量</string>
+    <string name="manage_proxied_apps">管理分应用代理列表</string>
+    <string name="manage_proxied_apps_summary">配置被代理或绕过的具体应用</string>
     <string name="on">打开</string>
     <string name="off">关闭</string>
     <string name="search_apps">搜索…</string>

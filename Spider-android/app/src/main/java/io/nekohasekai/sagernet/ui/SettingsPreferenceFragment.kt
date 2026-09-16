@@ -170,9 +170,16 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
         }
         isProxyApps = findPreference(Key.PROXY_APPS)!!
         isProxyApps.setOnPreferenceChangeListener { _, newValue ->
+            val enabled = newValue as Boolean
+            DataStore.proxyApps = enabled
+            DataStore.dirty = true
+            needReload()
+            true
+        }
+
+        findPreference<Preference>("proxyAppsManageLink")?.setOnPreferenceClickListener {
             startActivity(Intent(activity, AppManagerActivity::class.java))
-            if (newValue as Boolean) DataStore.dirty = true
-            newValue
+            true
         }
 
         val profileTrafficStatistics =

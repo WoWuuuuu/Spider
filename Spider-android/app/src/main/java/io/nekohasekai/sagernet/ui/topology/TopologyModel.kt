@@ -306,10 +306,7 @@ object TopologyRepository {
         val groupId = DataStore.currentGroupId()
         val allNodes = SagerDatabase.proxyDao.getAll()
         val nodes = allNodes.filter { it.groupId == groupId }
-        val nodeById = nodes.associateBy { it.id }
-        /* 全库 id 集合。**只**用来区分「节点真的被删了」和「节点在别的分组」——
-           少了它，一条指向别组节点的规则会被误判成孤儿，在 ② 层挂上「节点已删除」的错误 tag。
-           这两种情况的画法完全不同：前者该报警，后者只是「本组视图里看不到它的 ③ 卡」。 */
+        val allNodesMap = allNodes.associateBy { it.id }
         val allNodeIds = allNodes.mapTo(HashSet()) { it.id }
 
         /* 「主代理」= 当前选中的 profile（bg/BaseService.kt:317 就是这么解析的）。
@@ -319,12 +316,12 @@ object TopologyRepository {
 
         /* ③ 出站：主出站卡片始终常驻保底，再按「启用的规则里首次出现」的顺序收集目标，去重。 */
         val outCards = LinkedHashMap<String, TopologyCard>()
-        val mainCard = outboundCard(OUTBOUND_PROXY, nodeById, mainId, allNodeIds)
+        val mainCard = outboundCard(OUTBOUND_PROXY, allNodesMap, mainId, allNodeIds)
         if (mainCard != null) {
             outCards[mainCard.id] = mainCard
         }
         enabled.forEach { rule ->
-            val card = outboundCard(rule.outbound, nodeById, mainId, allNodeIds) ?: return@forEach
+            val card = outboundCard(rule.outbound, allNodesMap, mainId, allNodeIds) ?: return@forEach
             outCards.putIfAbsent(card.id, card)
         }
         val allOut = outCards.values.toList()
@@ -378,7 +375,7 @@ object TopologyRepository {
             )
         }
         enabled.take((ruleCap - 1).coerceAtLeast(0)).forEach { rule ->
-            val target = outboundCard(rule.outbound, nodeById, mainId, allNodeIds) ?: return@forEach
+            val target = outboundCard(rule.outbound, allNodesMap, mainId, allNodeIds) ?: return@forEach
             if (target.id in shownOutIds) {
                 outEdges.add(
                     TopologyEdge(
@@ -707,10 +704,6 @@ object TopologyRepository {
             else -> {
                 val node = nodeById[outbound]
                 if (node == null) {
-                    /* 节点还在、只是在**别的分组** → 本组视图里不画这张卡。
-                       这不是错误状态，返回 null 让 ②→③ 那条边也自然消失；
-                       画成「节点已删除」的 ghost 卡就是在撒谎。 */
-                    if (outbound in allNodeIds) return null
                     TopologyCard(
                         id = "ou-$outbound",
                         layer = 3,

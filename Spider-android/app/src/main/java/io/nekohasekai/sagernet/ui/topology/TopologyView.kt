@@ -81,6 +81,8 @@ class TopologyView @JvmOverloads constructor(
             if (key != lastStructureKey) {
                 lastStructureKey = key
                 relayout()
+            } else {
+                updateParticleCurves(value)
             }
         }
 
@@ -369,21 +371,38 @@ class TopologyView @JvmOverloads constructor(
             corridorY = TopologyRegions.OUT_Y0 * h,
         )
 
-        /* 粒子**只画 ②→③**（原型就是这么定的：`#pdots` 只喂 outbound 那几条）。
-           ①→② 只画端点圆点、不跑粒子 —— 一是 ①→② 的曲线数比 ②→③ 多一个量级
-           （22 颗 chip × 命中规则，实测 7680 条采样里 82% 会穿过卡片），
-           全画粒子等于糊一层密网；二是 ① 层本来就是「实时流量」，
-           它的动静由 chip 自己的上下行数字表达，不需要再叠一层动画。
-           过滤后曲线数从 ~20 掉到 ~3，`TopologyParticleView` 每帧的求值量同比例下降。 */
-        particleView?.update(
-            curves.filter { it.stage == TopologyEdgeStage.OUTBOUND },
-            boxes.values.toList(),
-            unit,
-        )
+        updateParticleCurves(snap)
+
         /* 算完了就把指纹写回去 —— 这样 [onSizeChanged] 那边「置空 → 重算」
            只会让这一次重算发生，不会让后面每一次推送都跟着重算。 */
         lastStructureKey = structureKey(snap)
         invalidate()
+    }
+
+    /**
+     * 粒子**只在命中规则时才在 ②→③ 连线上流动**：
+     * 从 ①→② 提取当前有流量流入的规则 ID（activeRuleIds），
+     * ②→③ 连线中只有来源是这些活跃规则的连线，才注入粒子流动。
+     * 没有流量时粒子完全静止，省电且真实反映数据流动。
+     */
+    private fun updateParticleCurves(snap: TopologySnapshot?) {
+        if (snap == null) {
+            particleView?.update(emptyList(), boxes.values.toList(), unit)
+            return
+        }
+        val activeRuleIds = snap.edges
+            .filter { it.stage == TopologyEdgeStage.INBOUND }
+            .mapTo(HashSet()) { it.toId }
+
+        val activeOutboundCurves = curves.filter {
+            it.stage == TopologyEdgeStage.OUTBOUND && it.fromId in activeRuleIds
+        }
+
+        particleView?.update(
+            activeOutboundCurves,
+            boxes.values.toList(),
+            unit,
+        )
     }
 
     private fun computeLayout(snap: TopologySnapshot) {
