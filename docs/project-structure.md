@@ -6,6 +6,23 @@
 
 ---
 
+> ## ⚠️ 本文档已过时 —— 请勿据此判断现状
+>
+> 本文档写于 **2026-08-27 11:37**，比 Android 工程的血统迁移（`76b4e2d`，同日 **20:31**）**早约 9 小时**。
+>
+> 它描述的是 **Spider 第一代（SFA / Jetpack Compose）** 架构。当晚工程已被**整体替换为 NekoBox v1.4.2**，本文档中以下内容**均已失效**：
+>
+> - 「Jetpack Compose」「`io.nekohasekai.sfa`」→ 现为 **View/XML**，包名 `io.nekohasekai.sagernet`
+> - 「`libbox.aar`」→ 现为 **`libcore.aar`**
+> - 「本仓库不包含 Go 源码的 inline 编译链」→ **与实际相反**，`libcore/` 存在完整 Go 编译链
+> - H1 决策「不做 NekoBox 源码整体替换」→ **当晚即被推翻**
+> - `sing-box-reference/`、`tools/windows/download-singbox.ps1`、`.trae/` → **从未落地**
+>
+> **请阅读 `docs/spider-architecture.md`（基于实际代码核实）。**
+> 本文档保留作为历史记录。
+
+---
+
 ## 1. 顶层目录全景（工作区根，`d:\workspace\Spider\`）
 
 ```

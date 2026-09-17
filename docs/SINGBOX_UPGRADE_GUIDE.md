@@ -1,5 +1,81 @@
 # Sing-Box 内核升级操作指南
 
+> ## ⚠️ 本文档只覆盖「配置格式适配」，未覆盖「内核升级本身」
+>
+> 本文档讲的是：内核升级后，Kotlin 侧的**配置格式**要跟着改什么。
+>
+> **但「内核怎么升」这一半完全没写** —— 见下方 §0。本文档的「版本历史」表亦与实际不符（现实际为 `1.12.19-neko-1`）。
+>
+> 架构背景请先读 `docs/spider-architecture.md`。
+
+---
+
+## 0. 内核升级本身（重要 · 本文档原先缺失）
+
+### 0.1 核心结论
+
+**升级 = 切换 `sing-box-matsuri/` 的 git 分支/commit，不改任何 `go.mod` 版本号。**
+
+`Spider-android/libcore/go.mod` 中：
+
+```go
+github.com/sagernet/sing-box v1.0.0 // replaced
+replace github.com/sagernet/sing-box => ../../sing-box-matsuri
+```
+
+那个 `v1.0.0` 是**占位符**，被 `replace` 完全罩住。真实版本由 `sing-box-matsuri/` 目录的 git 状态决定。`libneko`、`gomobile` 同理。
+
+### 0.2 必须等 neko，不能等官方
+
+`libcore` **硬依赖 neko 特有 API**（官方 sing-box 没有）：
+
+```go
+libcore/geoip.go:11   "github.com/sagernet/sing-box/nekoutils"
+libcore/geosite.go:9  "github.com/sagernet/sing-box/nekoutils"
+libcore/nb4a.go:16    "github.com/sagernet/sing-box/nekoutils"
+```
+
+→ **官方发新版只是"上游在动"的信号；真正的升级触发点是 neko 发布 `x.y.z-neko-1`。**
+
+### 0.3 操作步骤
+
+```bash
+# 1. 更新内核源码（需先解决网络/代理，当前直连报 SSL 错误）
+cd D:/workspace/Spider/sing-box-matsuri
+git fetch origin
+git checkout 1.12.x
+git pull
+git log --oneline -5          # 确认新的 x.y.z-neko-1
+
+# 2. 若 libneko 也需同步
+cd ../libneko && git fetch && git pull
+
+# 3. 重新编译内核（产出 libcore.aar 并自动拷到 app/libs）
+cd ../Spider-android/libcore
+./init.sh                     # 首次或 gomobile 环境丢失时
+./build.sh
+
+# 4. 打包
+cd ..
+./gradlew assembleOssRelease
+```
+
+`build.sh` 末尾会自动 `cp -f libcore.aar ../app/libs`，无需手动拷贝。
+
+### 0.4 当前版本与落后情况
+
+| 组件 | 目录 | 当前版本 |
+|------|------|---------|
+| 内核 | `sing-box-matsuri/` | `1.12.19-neko-1`（分支 `1.12.x`，2026-02-02） |
+| 工具库 | `libneko/` | `1c47a3a` |
+| 绑定工具 | `gomobile-src/` | `9f03b8f` |
+
+- 官方 sing-box 已至 **1.13 / 1.14+**，neko 落后约 **7~9 个月**。
+- neko fork 的 `def` 分支停在 **2023-03-31**，仅 `1.12.x` 分支活跃至 2026-02。
+- **止损线建议**：若 neko 超过 12 个月未更新，考虑自行维护补丁（改动量很小，见架构文档 §4.5）。
+
+---
+
 ## 概述
 
 本文档记录每次 Sing-Box 内核版本升级时需要检查和修改的配置变更。参考官方迁移指南：https://sing-box.sagernet.org/migration/
